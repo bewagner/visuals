@@ -1,0 +1,6 @@
+[submodule "Cinder"]
+	path = Cinder
+	url = git@github.com:cinder/Cinder.git
+[submodule "dlib"]
+	path = dlib
+	url = git@github.com:davisking/dlib.git
