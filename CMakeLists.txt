@@ -3,6 +3,10 @@ project(visual)
 
 add_subdirectory(Cinder)
 add_subdirectory(dlib)
+add_subdirectory(opencv)
+set(OPENCV_ENABLE_NONFREE ON)
+
+
 
 add_executable(app src/main.cpp)
 target_link_libraries(app dlib::dlib)
