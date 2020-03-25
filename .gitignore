@@ -33,3 +33,7 @@
 
 # Build folder
 build/
+
+# Clion files and folders
+.idea/
+cmake-build-*/
