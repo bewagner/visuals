@@ -4,3 +4,6 @@
 [submodule "opencv"]
 	path = opencv
 	url = https://github.com/opencv/opencv
+[submodule "dlib"]
+	path = dlib
+	url = https://github.com/davisking/dlib

@@ -12,6 +12,4 @@ mkdir -p build
 cd ./build 
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
 make -j 8 -l 8
-
-
-
+sudo make install
