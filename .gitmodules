@@ -7,3 +7,6 @@
 [submodule "dlib"]
 	path = dlib
 	url = https://github.com/davisking/dlib
+[submodule "opencv_contrib"]
+	path = opencv_contrib
+	url = https://github.com/opencv/opencv_contrib.git

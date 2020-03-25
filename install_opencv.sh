@@ -3,13 +3,10 @@
 base_directory=$(pwd)
 
 opencv_build_directory="opencv_build"
-rm -r "${opencv_build_directory}"
-mkdir -p "${opencv_build_directory}"
 
 cd ./opencv
-rm -r build 
 mkdir -p build 
 cd ./build 
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
-make -j 8 -l 8
+cmake -DCMAKE_BUILD_TYPE=Release -DOPENCV_EXTRA_MODULES_PATH=${base_directory}/opencv_contrib/modules -DCMAKE_INSTALL_PREFIX=/usr/local -DOPENCV_GENERATE_PKGCONFIG=ON ..
+make -j $(nproc) -l $(nproc)
 sudo make install
