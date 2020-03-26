@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.0)
-project(visuals)
+project(visuals LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SOURCES
         src/main.cpp
-        )
+        src/FaceDetector.cpp)
 
 # Cinder setup
 #add_subdirectory(Cinder)
@@ -24,6 +24,28 @@ set(SOURCES
 find_package(OpenCV REQUIRED)
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
+target_include_directories(${PROJECT_NAME} PRIVATE include)
+
+# Copy network weights and configuration files to binary directory
+set(CONFIGURATION_FILE "deploy.prototxt")
+set(WEIGHTS_FILE "res10_300x300_ssd_iter_140000_fp16.caffemodel")
+
+foreach (file "${CONFIGURATION_FILE}" "${WEIGHTS_FILE}")
+    configure_file(
+            ${PROJECT_SOURCE_DIR}/assets/${file}
+            ${PROJECT_BINARY_DIR}
+            COPYONLY
+    )
+endforeach (file)
+target_compile_definitions(${PROJECT_NAME} PRIVATE MODEL_CONFIGURATION_FILE="${PROJECT_BINARY_DIR}/${CONFIGURATION_FILE}")
+target_compile_definitions(${PROJECT_NAME} PRIVATE MODEL_WEIGHTS_FILE="${PROJECT_BINARY_DIR}/${WEIGHTS_FILE}")
+
+
+
+# DLib setup
+find_package(dlib REQUIRED)
+find_package(Threads REQUIRED)
+target_link_libraries(${PROJECT_NAME} dlib::dlib)
 
 
 

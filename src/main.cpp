@@ -1,59 +1,65 @@
-#include <stdio.h>
+#include <iostream>
+
+#include "FaceDetector.h"
+
 #include <opencv4/opencv2/opencv.hpp>
 #include <opencv4/opencv2/face.hpp>
 
-using namespace cv;
-using namespace cv::face;
 
 int main(int argc, char **argv) {
 
-    CascadeClassifier faceDetector("haarcascade_frontalface_alt2.xml");
+
+    FaceDetector face_detector;
+
 
     // Create an instance of Facemark
-//    Ptr<Facemark> facemark = FacemarkLBF::create();
-
+    cv::Ptr<cv::face::Facemark> facemark = cv::face::FacemarkLBF::create();
     // Load landmark detector
-//    facemark->loadModel("lbfmodel.yaml");
+    facemark->loadModel("lbfmodel.yaml");
 
-    VideoCapture video_capture;
+//    cv::Conf config("lbpcascade_frontalface_improved.xml");
+
+
+
+    cv::VideoCapture video_capture;
     if (!video_capture.open(0)) {
         return 0;
     }
-    Mat frame, gray;
+    cv::Mat frame;
     while (true) {
-
-        std::vector<Rect> faces;
-
         video_capture >> frame;
-
-        if (frame.empty()) {
-            break;
+        if (frame.channels() == 4) {
+            cv::cvtColor(frame, frame, cv::COLOR_BGRA2BGR);
         }
 
-        cvtColor(frame, gray, COLOR_BGR2GRAY);
 
-        // Detect faces
-        try {
-            faceDetector.detectMultiScale(gray, faces);
-        } catch(const cv::Exception & e){
-            std::cout << e.what() << std::endl;
-            continue;
-        }
-
+        auto detected_faces = face_detector.detect_faces(frame);
 
         // Draw detected faces
-        if (!faces.empty()) {
-            for (const auto &face : faces) {
-                rectangle(frame, face, Scalar(0, 255, 0));
-            }
+        for (const auto &face : detected_faces) {
+            rectangle(frame, face, cv::Scalar(0, 255, 0));
         }
 
 
-        std::cout << faces.size() << std::endl;
+        cv::InputArray input(detected_faces);
+
+
+        std::vector<std::vector<cv::Point2f> > landmarks;
+
+        facemark->fit(frame, input, landmarks);
+
+        //if faces are detected, draw face landmarks
+        if (detected_faces.size() > 0) {
+            for (unsigned int j = 0; j < detected_faces.size(); j++) {
+                cv::face::drawFacemarks(frame, landmarks.at(j), cv::Scalar(0, 255, 255));
+            }
+
+        }
+
 
         imshow("Image", frame);
 
-        if (waitKey(10) == 27) {
+        if (cv::waitKey(10) == 27) {
             break;
         }
 
@@ -61,7 +67,7 @@ int main(int argc, char **argv) {
 
     video_capture.release();
 
-    destroyAllWindows();
+    cv::destroyAllWindows();
 
 
     return 0;
