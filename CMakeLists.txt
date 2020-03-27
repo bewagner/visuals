@@ -42,12 +42,16 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE MODEL_WEIGHTS_FILE="${PROJECT
 
 
 
-# DLib setup
-find_package(dlib REQUIRED)
-find_package(Threads REQUIRED)
-target_link_libraries(${PROJECT_NAME} dlib::dlib)
+## DLib setup
+#find_package(dlib REQUIRED)
+#find_package(Threads REQUIRED)
+#target_link_libraries(${PROJECT_NAME} dlib::dlib)
 
 
-
-
+## Pytorch setup
+#set(Torch_DIR "${PROJECT_SOURCE_DIR}/libtorch/share/cmake/Torch")
+#find_package(Torch REQUIRED)
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+#target_link_libraries(${PROJECT_NAME} "${TORCH_LIBRARIES}")
+#target_include_directories(${PROJECT_NAME} PUBLIC "${TORCH_INCLUDE_DIRS}")
 
