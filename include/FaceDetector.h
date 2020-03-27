@@ -11,12 +11,15 @@
 
 class FaceDetector {
 public:
-    FaceDetector();
+    explicit FaceDetector();
 
 /// Detect faces in an image frame
 /// \param frame Image to detect faces in
 /// \return Vector of detected faces
     std::vector<cv::Rect> detect_faces(const cv::Mat &frame);
+
+
+    void draw_rectangles_around_detected_faces(const std::vector<cv::Rect> & detected_faces, cv::Mat image) const;
 
 private:
     /// Face detection network

@@ -1,23 +1,25 @@
 //
 // Created by benjamin on 26.03.20.
 //
-#include "FaceDetector.h"
+
 #include <exception>
 #include <sstream>
 #include <vector>
 #include <string>
+#include <FaceDetector.h>
+#include <opencv4/opencv2/opencv.hpp>
 
 FaceDetector::FaceDetector() : confidence_threshold_(0.5), input_image_height_(300), input_image_width_(300),
                                scale_factor_(1.0), mean_values_({104., 177.0, 123.0}) {
 
 // Note: The varibles MODEL_CONFIGURATION_FILE and MODEL_WEIGHTS_FILE are passed in via cmake
-    network_ = cv::dnn::readNetFromCaffe(MODEL_CONFIGURATION_FILE, MODEL_WEIGHTS_FILE);
+    network_ = cv::dnn::readNetFromCaffe(FACE_DETECTION_CONFIGURATION, FACE_DETECTION_WEIGHTS);
 
     if (network_.empty()) {
         std::ostringstream ss;
         ss << "Failed to load network with the following settings:\n"
-           << "Configuration: " + std::string(MODEL_CONFIGURATION_FILE) + "\n"
-           << "Binary: " + std::string(MODEL_WEIGHTS_FILE) + "\n";
+           << "Configuration: " + std::string(FACE_DETECTION_CONFIGURATION) + "\n"
+           << "Binary: " + std::string(FACE_DETECTION_WEIGHTS) + "\n";
         throw std::invalid_argument(ss.str());
     }
 }
@@ -48,4 +50,13 @@ std::vector<cv::Rect> FaceDetector::detect_faces(const cv::Mat &frame) {
     }
 
     return faces;
+}
+
+void
+FaceDetector::draw_rectangles_around_detected_faces(const std::vector<cv::Rect> &detected_faces, cv::Mat image) const {
+
+    for (const auto &face : detected_faces) {
+        cv::rectangle(image, face, cv::Scalar(0, 255, 0));
+    }
+
 }
