@@ -89,13 +89,13 @@ void BasicApp::draw() {
 
 void BasicApp::update() {
 
-    console() << getAverageFps() << std::endl;
+
+    video_capture >> frame;
     if (frame.empty()) {
         return;
     }
-    std::cout << "Got here" << std::endl;
 
-    video_capture >> frame;
+
     if (frame.channels() == 4) {
         cv::cvtColor(frame, frame, cv::COLOR_BGRA2BGR);
     }
@@ -108,6 +108,7 @@ void BasicApp::update() {
 //    keypoint_detector.draw_detected_keypoints(detected_keypoints, frame);
 
 
+    console() << "Got here " << std::endl;
     // TODO Make OpenCV Cinder block work
     cv::imshow("Frame", frame);
 
