@@ -1,7 +1,7 @@
 #include <iostream>
-//#include "FaceDetector.h"
-//#include "KeypointDetector.h"
-//#include <opencv4/opencv2/opencv.hpp>
+#include "FaceDetector.h"
+#include "KeypointDetector.h"
+#include <opencv4/opencv2/opencv.hpp>
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
@@ -9,78 +9,112 @@
 
 using namespace ci;
 using namespace ci::app;
-using namespace std;
 
-
-class HelloCinder01App : public App {
+// We'll create a new Cinder Application by deriving from the App class.
+class BasicApp : public App {
 public:
-    void setup() override;
-    void update() override;
-    void draw() override;
-private:
+    // Cinder will call 'mouseDrag' when the user moves the mouse while holding one of its buttons.
+    // See also: mouseMove, mouseDown, mouseUp and mouseWheel.
+    void mouseDrag(MouseEvent event) override;
 
+    // Cinder will call 'keyDown' when the user presses a key on the keyboard.
+    // See also: keyUp.
+    void keyDown(KeyEvent event) override;
+
+    // Cinder will call 'draw' each time the contents of the window need to be redrawn.
+    void draw() override;
+
+
+    void update() override;
+
+private:
+    // This will maintain a list of points which we will draw line segments between
+    std::vector<vec2> mPoints;
+    cv::VideoCapture video_capture;
+    cv::Mat frame;
+
+    FaceDetector face_detector;
+//    KeypointDetector keypoint_detector;
 };
 
-void HelloCinder01App::setup() {
-
+void prepareSettings(BasicApp::Settings *settings) {
+    settings->setMultiTouchEnabled(false);
 }
 
-void HelloCinder01App::update() {
-    getWindow()->setTitle("fps: " + to_string(getAverageFps()));
-
+void BasicApp::mouseDrag(MouseEvent event) {
+    // Store the current mouse position in the list.
+    mPoints.emplace_back(event.getPos());
 }
 
-void HelloCinder01App::draw() {
-    gl::clear();
+void BasicApp::keyDown(KeyEvent event) {
 
+    if (event.getChar() == 'f') {
+        // Toggle full screen when the user presses the 'f' key.
+        setFullScreen(!isFullScreen());
+    } else if (event.getCode() == KeyEvent::KEY_SPACE) {
+        // Clear the list of points when the user presses the space bar.
+        mPoints.clear();
+    } else if (event.getCode() == KeyEvent::KEY_ESCAPE) {
+        // Exit full screen, or quit the application, when the user presses the ESC key.
+        if (isFullScreen())
+            setFullScreen(false);
+        else
+            quit();
+    }
 }
 
+void BasicApp::draw() {
+    // Clear the contents of the window. This call will clear
+    // both the color and depth buffers.
+    gl::clear(Color::gray(0.1f));
 
-CINDER_APP(
-        HelloCinder01App,
-        RendererGl(RendererGl::Options().msaa(16)),
-        [&](App::Settings *settings){
-            settings->setWindowSize(800, 600);
-            settings->setFrameRate(60.0f);
-        }
-)
+    // Set the current draw color to orange by setting values for
+    // red, green and blue directly. Values range from 0 to 1.
+    // See also: gl::ScopedColor
+    gl::color(1.0f, 0.5f, 0.25f);
+
+    // We're going to draw a line through all the points in the list
+    // using a few convenience functions: 'begin' will tell OpenGL to
+    // start constructing a line strip, 'vertex' will add a point to the
+    // line strip and 'end' will execute the draw calls on the GPU.
+    gl::begin(GL_LINE_STRIP);
+    for (const vec2 &point : mPoints) {
+        gl::vertex(point);
+    }
+    gl::end();
+}
+
+void BasicApp::update() {
+
+    console() << getAverageFps() << std::endl;
+    if (frame.empty()) {
+        return;
+    }
 
 
+    video_capture >> frame;
+    if (frame.channels() == 4) {
+        cv::cvtColor(frame, frame, cv::COLOR_BGRA2BGR);
+    }
 
-//int main(int argc, char **argv) {
+
+    auto detected_faces = face_detector.detect_faces(frame);
+    face_detector.draw_rectangles_around_detected_faces(detected_faces, frame);
 //
-//
-//    FaceDetector face_detector;
-//    KeypointDetector keypoint_detector;
-//
-//
-//    cv::VideoCapture video_capture;
-//    if (!video_capture.open(0)) {
-//        return 0;
+//    auto detected_keypoints = keypoint_detector.detect_keypoints(detected_faces, frame);
+//    keypoint_detector.draw_detected_keypoints(detected_keypoints, frame);
+
+
+    // TODO Make OpenCV Cinder block work
+    cv::imshow("Frame", frame);
+
+//    // Esc
+//    if (cv::waitKey(10) == 27) {
+//        video_capture.release();
+//        cv::destroyAllWindows();
 //    }
-//    cv::Mat frame;
-//    while (true) {
-//        video_capture >> frame;
-//        if (frame.channels() == 4) {
-//            cv::cvtColor(frame, frame, cv::COLOR_BGRA2BGR);
-//        }
-//
-//        auto detected_faces = face_detector.detect_faces(frame);
-//        face_detector.draw_rectangles_around_detected_faces(detected_faces, frame);
-//
-//        auto detected_keypoints = keypoint_detector.detect_keypoints(detected_faces, frame);
-//        keypoint_detector.draw_detected_keypoints(detected_keypoints, frame);
-//
-//        imshow("Image", frame);
-//
-//        // Esc
-//        if (cv::waitKey(10) == 27) {
-//            break;
-//        }
-//    }
-//
-//    video_capture.release();
-//    cv::destroyAllWindows();
-//
-//    return 0;
-//}
+
+}
+
+// This line tells Cinder to actually create and run the application.
+CINDER_APP(BasicApp, RendererGl, prepareSettings)
