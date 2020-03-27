@@ -13,6 +13,9 @@ using namespace ci::app;
 // We'll create a new Cinder Application by deriving from the App class.
 class BasicApp : public App {
 public:
+
+    BasicApp();
+
     // Cinder will call 'mouseDrag' when the user moves the mouse while holding one of its buttons.
     // See also: mouseMove, mouseDown, mouseUp and mouseWheel.
     void mouseDrag(MouseEvent event) override;
@@ -33,7 +36,7 @@ private:
     cv::VideoCapture video_capture;
     cv::Mat frame;
 
-    FaceDetector face_detector;
+//    FaceDetector face_detector;
 //    KeypointDetector keypoint_detector;
 };
 
@@ -90,7 +93,7 @@ void BasicApp::update() {
     if (frame.empty()) {
         return;
     }
-
+    std::cout << "Got here" << std::endl;
 
     video_capture >> frame;
     if (frame.channels() == 4) {
@@ -98,8 +101,8 @@ void BasicApp::update() {
     }
 
 
-    auto detected_faces = face_detector.detect_faces(frame);
-    face_detector.draw_rectangles_around_detected_faces(detected_faces, frame);
+//    auto detected_faces = face_detector.detect_faces(frame);
+//    face_detector.draw_rectangles_around_detected_faces(detected_faces, frame);
 //
 //    auto detected_keypoints = keypoint_detector.detect_keypoints(detected_faces, frame);
 //    keypoint_detector.draw_detected_keypoints(detected_keypoints, frame);
@@ -108,12 +111,18 @@ void BasicApp::update() {
     // TODO Make OpenCV Cinder block work
     cv::imshow("Frame", frame);
 
-//    // Esc
-//    if (cv::waitKey(10) == 27) {
-//        video_capture.release();
-//        cv::destroyAllWindows();
-//    }
+    // Esc
+    if (cv::waitKey(10) == 27) {
+        video_capture.release();
+        cv::destroyAllWindows();
+    }
 
+}
+
+BasicApp::BasicApp() {
+    if (!video_capture.open(0)) {
+        throw std::invalid_argument("Video capture did not work");
+    }
 }
 
 // This line tells Cinder to actually create and run the application.
