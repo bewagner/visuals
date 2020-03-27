@@ -36,8 +36,8 @@ private:
     cv::VideoCapture video_capture;
     cv::Mat frame;
 
-//    FaceDetector face_detector;
-//    KeypointDetector keypoint_detector;
+    FaceDetector face_detector;
+    KeypointDetector keypoint_detector;
 };
 
 void prepareSettings(BasicApp::Settings *settings) {
@@ -58,11 +58,14 @@ void BasicApp::keyDown(KeyEvent event) {
         // Clear the list of points when the user presses the space bar.
         mPoints.clear();
     } else if (event.getCode() == KeyEvent::KEY_ESCAPE) {
+
         // Exit full screen, or quit the application, when the user presses the ESC key.
-        if (isFullScreen())
+        if (isFullScreen()) {
             setFullScreen(false);
-        else
+        } else {
             quit();
+        }
+
     }
 }
 
@@ -88,7 +91,7 @@ void BasicApp::draw() {
 }
 
 void BasicApp::update() {
-
+    console() << getAverageFps() << std::endl;
 
     video_capture >> frame;
     if (frame.empty()) {
@@ -101,23 +104,21 @@ void BasicApp::update() {
     }
 
 
-//    auto detected_faces = face_detector.detect_faces(frame);
-//    face_detector.draw_rectangles_around_detected_faces(detected_faces, frame);
-//
-//    auto detected_keypoints = keypoint_detector.detect_keypoints(detected_faces, frame);
-//    keypoint_detector.draw_detected_keypoints(detected_keypoints, frame);
+    auto detected_faces = face_detector.detect_faces(frame);
+    face_detector.draw_rectangles_around_detected_faces(detected_faces, frame);
+
+    auto detected_keypoints = keypoint_detector.detect_keypoints(detected_faces, frame);
+    keypoint_detector.draw_detected_keypoints(detected_keypoints, frame);
 
 
-    console() << "Got here " << std::endl;
     // TODO Make OpenCV Cinder block work
     cv::imshow("Frame", frame);
 
     // Esc
-    if (cv::waitKey(10) == 27) {
+    if (cv::waitKey(1) == 27) {
         video_capture.release();
         cv::destroyAllWindows();
     }
-
 }
 
 BasicApp::BasicApp() {
