@@ -6,15 +6,16 @@
 #define VISUALS_KEYPOINTDETECTOR_H
 
 #include <opencv4/opencv2/face.hpp>
+#include "Face.h"
+
 
 class KeypointDetector {
 public:
     explicit KeypointDetector();
 
-    std::vector<std::vector<cv::Point2f>>
-    detect_keypoints(const std::vector<cv::Rect> &faces, const cv::Mat &image) const;
+    std::vector<Face> detect_keypoints(const std::vector<cv::Rect> &face_rectangles, const cv::Mat &image) const;
 
-    void draw_detected_keypoints(const std::vector<std::vector<cv::Point2f>> &keypoints_for_all_faces,
+    void draw_detected_keypoints(const std::vector<Face> &faces,
                                  const cv::Mat &frame) const;
 
 private:

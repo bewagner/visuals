@@ -28,8 +28,9 @@ int main(int argc, char **argv) {
         auto detected_keypoints = keypoint_detector.detect_keypoints(detected_faces, frame);
         keypoint_detector.draw_detected_keypoints(detected_keypoints, frame);
 
-        imshow("Image", blurred);
+        imshow("Image", frame);
 
+        // Esc
         if (cv::waitKey(10) == 27) {
             break;
         }

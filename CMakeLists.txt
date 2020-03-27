@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SOURCES
         src/main.cpp
-        src/FaceDetector.cpp src/KeypointDetector.cpp include/KeypointDetector.h)
+        src/FaceDetector.cpp src/KeypointDetector.cpp include/KeypointDetector.h src/Face.cpp include/Face.h)
 
 # Cinder setup
 #add_subdirectory(Cinder)
@@ -20,13 +20,14 @@ set(SOURCES
 #        INCLUDES include/
 #)
 
+add_executable(${PROJECT_NAME} ${SOURCES})
+
 # OpenCV setup
 find_package(OpenCV REQUIRED)
-add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
-# Introduce preprocessor variables to keep apths of asset files
+# Introduce preprocessor variables to keep paths of asset files
 set(FACE_DETECTION_CONFIGURATION "${PROJECT_SOURCE_DIR}/assets/deploy.prototxt")
 set(FACE_DETECTION_WEIGHTS "${PROJECT_SOURCE_DIR}/assets/res10_300x300_ssd_iter_140000_fp16.caffemodel")
 set(KEYPOINT_DETECTION_MODEL "${PROJECT_SOURCE_DIR}/assets/lbfmodel.yaml")

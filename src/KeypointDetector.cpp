@@ -5,6 +5,7 @@
 #include <KeypointDetector.h>
 
 #include "KeypointDetector.h"
+#include <opencv4/opencv2/opencv.hpp>
 
 KeypointDetector::KeypointDetector() {
     facemark_ = cv::face::FacemarkLBF::create();
@@ -12,19 +13,26 @@ KeypointDetector::KeypointDetector() {
 
 }
 
-std::vector<std::vector<cv::Point2f>>
-KeypointDetector::detect_keypoints(const std::vector<cv::Rect> &faces, const cv::Mat &image) const {
+std::vector<Face>
+KeypointDetector::detect_keypoints(const std::vector<cv::Rect> &face_rectangles, const cv::Mat &image) const {
 
-    cv::InputArray faces_as_input_array(faces);
+    cv::InputArray faces_as_input_array(face_rectangles);
     std::vector<std::vector<cv::Point2f> > keypoints;
     facemark_->fit(image, faces_as_input_array, keypoints);
 
-    return keypoints;
+    std::vector<Face> faces;
+    std::transform(keypoints.begin(), keypoints.end(), std::back_inserter(faces), [](const auto &keypoints) {
+        return Face(keypoints);
+    });
+
+    return faces;
 }
 
-void KeypointDetector::draw_detected_keypoints(const std::vector<std::vector<cv::Point2f>> &keypoints_for_all_faces,
+void KeypointDetector::draw_detected_keypoints(const std::vector<Face> &faces,
                                                const cv::Mat &frame) const {
-    for (const auto &individual_face_keypoints : keypoints_for_all_faces) {
-        cv::face::drawFacemarks(frame, individual_face_keypoints, cv::Scalar(0, 255, 255));
+    cv::Scalar red(0, 0, 255);
+    for (const auto &face : faces) {
+        cv::circle(frame, face.left_eye_center(), 8, red, -1);
+        cv::circle(frame, face.right_eye_center(), 8, red, -1);
     }
 }
