@@ -5,12 +5,13 @@
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
+#include "CinderOpenCV.h"
 
 
 using namespace ci;
 using namespace ci::app;
 
-// We'll create a new Cinder Application by deriving from the App class.
+
 class BasicApp : public App {
 public:
 
@@ -20,21 +21,18 @@ public:
     // See also: mouseMove, mouseDown, mouseUp and mouseWheel.
     void mouseDrag(MouseEvent event) override;
 
-    // Cinder will call 'keyDown' when the user presses a key on the keyboard.
-    // See also: keyUp.
     void keyDown(KeyEvent event) override;
 
-    // Cinder will call 'draw' each time the contents of the window need to be redrawn.
     void draw() override;
-
 
     void update() override;
 
 private:
-    // This will maintain a list of points which we will draw line segments between
-    std::vector<vec2> mPoints;
-    cv::VideoCapture video_capture;
-    cv::Mat frame;
+    std::vector<vec2> points_;
+    cv::VideoCapture video_capture_;
+    cv::Mat frame_;
+
+
 
     FaceDetector face_detector;
     KeypointDetector keypoint_detector;
@@ -46,7 +44,7 @@ void prepareSettings(BasicApp::Settings *settings) {
 
 void BasicApp::mouseDrag(MouseEvent event) {
     // Store the current mouse position in the list.
-    mPoints.emplace_back(event.getPos());
+    points_.emplace_back(event.getPos());
 }
 
 void BasicApp::keyDown(KeyEvent event) {
@@ -56,7 +54,7 @@ void BasicApp::keyDown(KeyEvent event) {
         setFullScreen(!isFullScreen());
     } else if (event.getCode() == KeyEvent::KEY_SPACE) {
         // Clear the list of points when the user presses the space bar.
-        mPoints.clear();
+        points_.clear();
     } else if (event.getCode() == KeyEvent::KEY_ESCAPE) {
 
         // Exit full screen, or quit the application, when the user presses the ESC key.
@@ -84,7 +82,7 @@ void BasicApp::draw() {
     // start constructing a line strip, 'vertex' will add a point to the
     // line strip and 'end' will execute the draw calls on the GPU.
     gl::begin(GL_LINE_STRIP);
-    for (const vec2 &point : mPoints) {
+    for (const vec2 &point : points_) {
         gl::vertex(point);
     }
     gl::end();
@@ -93,39 +91,45 @@ void BasicApp::draw() {
 void BasicApp::update() {
     console() << getAverageFps() << std::endl;
 
-    video_capture >> frame;
-    if (frame.empty()) {
+    video_capture_ >> frame_;
+    if (frame_.empty()) {
         return;
     }
-
-
-    if (frame.channels() == 4) {
-        cv::cvtColor(frame, frame, cv::COLOR_BGRA2BGR);
+    if (frame_.channels() == 4) {
+        cv::cvtColor(frame_, frame_, cv::COLOR_BGRA2BGR);
     }
 
+    auto detected_faces = face_detector.detect_faces(frame_);
+    face_detector.draw_rectangles_around_detected_faces(detected_faces, frame_);
 
-    auto detected_faces = face_detector.detect_faces(frame);
-    face_detector.draw_rectangles_around_detected_faces(detected_faces, frame);
-
-    auto detected_keypoints = keypoint_detector.detect_keypoints(detected_faces, frame);
-    keypoint_detector.draw_detected_keypoints(detected_keypoints, frame);
+    auto detected_keypoints = keypoint_detector.detect_keypoints(detected_faces, frame_);
+    keypoint_detector.draw_detected_keypoints(detected_keypoints, frame_);
 
 
-    // TODO Make OpenCV Cinder block work
     cv::imshow("Frame", frame);
 
     // Esc
     if (cv::waitKey(1) == 27) {
-        video_capture.release();
+        video_capture_.release();
         cv::destroyAllWindows();
     }
 }
 
 BasicApp::BasicApp() {
-    if (!video_capture.open(0)) {
-        throw std::invalid_argument("Video capture did not work");
+    const int max_number_of_cameras_to_try = 10;
+    for (int i = 0; i < max_number_of_cameras_to_try; ++i) {
+        if (video_capture_.open(i)) {
+            break;
+        }
+    }
+    if (!video_capture_.isOpened()) {
+        throw std::invalid_argument("Video capture could not find camera.");
     }
 }
 
-// This line tells Cinder to actually create and run the application.
+
 CINDER_APP(BasicApp, RendererGl, prepareSettings)
+
+
+// TODO
+// - Test opencv cinder block
