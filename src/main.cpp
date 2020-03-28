@@ -5,67 +5,77 @@
 #include <opencv4/opencv2/tracking.hpp>
 
 
-void recreate_tracker(cv::Ptr<cv::Tracker> & tracker) {
-    tracker = cv::TrackerMedianFlow::create();
-}
-
 int main(int argc, char **argv) {
 
 
     FaceDetector face_detector;
     KeypointDetector keypoint_detector;
-    cv::Ptr<cv::Tracker> tracker;
-    recreate_tracker(tracker);
 
 
     cv::VideoCapture video_capture;
     if (!video_capture.open(0)) {
         return 0;
     }
-    cv::Mat frame;
+    cv::Mat frame, frame_gray;
 
     unsigned int frame_counter = 0;
-    std::vector<cv::Rect> detected_faces;
-    std::vector<Face> detected_keypoints;
-    cv::Rect2d face;
-    bool tracking_error_in_last_frame = false;
+
+
+    cv::Mat old_frame, old_gray;
+
+    std::vector<cv::Point2f> eyes;
+    std::vector<Face> detected_faces;
 
     while (true) {
         video_capture >> frame;
         if (frame.channels() == 4) {
             cv::cvtColor(frame, frame, cv::COLOR_BGRA2BGR);
         }
+        cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
 
-        if (frame_counter % 60 == 0 || detected_faces.empty() || tracking_error_in_last_frame) {
+
+        if (frame_counter % 80 == 0 || detected_faces.empty()) {
 
 
             putText(frame, "Detecting faces", cv::Point(100, 80), cv::FONT_HERSHEY_SIMPLEX, 0.75,
                     cv::Scalar(0, 0, 255), 2);
-            detected_faces = face_detector.detect_faces(frame);
+            auto detected_face_rectangles = face_detector.detect_faces(frame);
 
-            if (detected_faces.empty()) {
-                continue;
+            if (!detected_face_rectangles.empty()) {
+                detected_faces = keypoint_detector.detect_keypoints(detected_face_rectangles, frame);
+
+                eyes.clear();
+                eyes.reserve(detected_faces.size() * 2);
+                for (const auto &face : detected_faces) {
+                    eyes.emplace_back(face.left_eye_center());
+                    eyes.emplace_back(face.right_eye_center());
+                }
             }
 
-            tracking_error_in_last_frame = false;
-            face = detected_faces.front();
-            recreate_tracker(tracker);
-            tracker->init(frame, face);
 
+        } else if (!eyes.empty()) {
 
-        } else {
-            bool ok = tracker->update(frame, face);
-            if (!ok) {
-                tracking_error_in_last_frame = true;
-                putText(frame, "Tracking failure detected", cv::Point(100, 80), cv::FONT_HERSHEY_SIMPLEX, 0.75,
-                        cv::Scalar(0, 0, 255), 2);
+            int size = 30;
+            std::vector<uchar> status;
+            std::vector<float> err;
+            std::vector<cv::Point2f> new_eyes;
+            cv::TermCriteria criteria = cv::TermCriteria((cv::TermCriteria::COUNT) + (cv::TermCriteria::EPS), 10, 0.03);
+            calcOpticalFlowPyrLK(old_gray, frame_gray, eyes, new_eyes, status, err, cv::Size(size, size), 2, criteria);
+            for (int i = 0; i < std::min(eyes.size(), new_eyes.size()); ++i) {
+                if (status[i] == 1) {
+                    eyes[i] = new_eyes[i];
+                }
             }
+
         }
 
+        old_frame = frame.clone();
+        old_gray = frame_gray.clone();
 
-        face_detector.draw_rectangles_around_detected_faces({face}, frame);
-        auto keypoints = keypoint_detector.detect_keypoints({face}, frame);
-        keypoint_detector.draw_detected_keypoints(keypoints, frame);
+
+        for (const auto &eye : eyes) {
+            cv::circle(frame, eye, 8, cv::Scalar(0, 255, 0), -1);
+        }
         imshow("Image", frame);
 
 
