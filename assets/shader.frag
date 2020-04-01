@@ -16,9 +16,9 @@ out vec4 oColor;
 void main(void)
 {
     vec2 face_position = vec2(1.-facePosition.x, 1.- facePosition.y);
-    vec2 distance_to_face = pow((gl_FragCoord.xy / uResolution) - face_position, vec2(2.));
+    float distance_to_face = distance((gl_FragCoord.xy / uResolution), face_position);
 
-    if (distance_to_face.x + distance_to_face.y < 0.01){
+    if (distance_to_face < 0.01){
         oColor = vec4(0.);
         oColor.a = 1.;
     } else {
