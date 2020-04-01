@@ -24,13 +24,13 @@ public:
     void update() override;
 
 private:
-//    void showOpenCVWindow();
+    void showOpenCVWindow();
+    std::vector<Face> faceDetectionPipeline();
 
-
-//    cv::VideoCapture video_capture_;
-//    cv::Mat frame_;
-//    FaceDetector face_detector;
-//    KeypointDetector keypoint_detector;
+    cv::VideoCapture video_capture_;
+    cv::Mat frame_;
+    FaceDetector face_detector;
+    KeypointDetector keypoint_detector;
     gl::GlslProgRef shader;
 };
 
@@ -57,63 +57,79 @@ void BasicApp::keyDown(KeyEvent event) {
 }
 
 void BasicApp::draw() {
+    auto detected_faces = faceDetectionPipeline();
+
     // Clear the contents of the window. This call will clear
     // both the color and depth buffers.
     gl::clear();
     gl::ScopedGlslProg s(shader);
 
-    vec2 mouse_pos = getMousePos();
-    mouse_pos.x /= static_cast<float>(getWindowWidth());
-    mouse_pos.y /= static_cast<float>(getWindowHeight());
-    shader->uniform("mousePosition", mouse_pos);
+    vec2 face_position = vec2(-1.);
+    if (!detected_faces.empty()) {
+        auto left_eye = detected_faces.front().left_eye();
+
+        face_position.x = left_eye[0].x / getWindowWidth();
+        face_position.y = left_eye[1].y / getWindowHeight();
+        std::cout << face_position << std::endl;
+    }
+
+
+
+
+    shader->uniform("facePosition", face_position);
     shader->uniform("uResolution", vec2(getWindowSize()));
     gl::drawSolidRect(getWindowBounds());
+    showOpenCVWindow();
 }
 
 void BasicApp::update() {
 
+
 }
 
 BasicApp::BasicApp() {
-//    const int max_number_of_cameras_to_try = 10;
-//    for (int i = 0; i < max_number_of_cameras_to_try; ++i) {
-//        if (video_capture_.open(i)) {
-//            break;
-//        }
-//    }
-//    if (!video_capture_.isOpened()) {
-//        throw std::invalid_argument("Video capture could not find camera.");
-//    }
+    const int max_number_of_cameras_to_try = 10;
+    for (int i = 0; i < max_number_of_cameras_to_try; ++i) {
+        if (video_capture_.open(i)) {
+            break;
+        }
+    }
+    if (!video_capture_.isOpened()) {
+        throw std::invalid_argument("Video capture could not find camera.");
+    }
 
     shader = gl::GlslProg::create(loadAsset("shader.vert"), loadAsset("shader.frag"));
+}
 
+std::vector<Face> BasicApp::faceDetectionPipeline() {
+    video_capture_ >> frame_;
+    if (frame_.empty()) {
+        return std::vector<Face>();
+    }
+    if (frame_.channels() == 4) {
+        cv::cvtColor(frame_, frame_, cv::COLOR_BGRA2BGR);
+    }
+
+    auto detected_faces = face_detector.detect_faces(frame_);
+//    face_detector.draw_rectangles_around_detected_faces(detected_faces, frame_);
+
+    auto detected_keypoints = keypoint_detector.detect_keypoints(detected_faces, frame_);
+    keypoint_detector.draw_detected_keypoints(detected_keypoints, frame_);
+
+    return detected_keypoints;
 
 }
 
-//void BasicApp::showOpenCVWindow() {
-//    video_capture_ >> frame_;
-//    if (frame_.empty()) {
-//        return;
-//    }
-//    if (frame_.channels() == 4) {
-//        cv::cvtColor(frame_, frame_, cv::COLOR_BGRA2BGR);
-//    }
-//
-//    auto detected_faces = face_detector.detect_faces(frame_);
-//    face_detector.draw_rectangles_around_detected_faces(detected_faces, frame_);
-//
-//    auto detected_keypoints = keypoint_detector.detect_keypoints(detected_faces, frame_);
-//    keypoint_detector.draw_detected_keypoints(detected_keypoints, frame_);
-//
-//
-//    cv::imshow("Frame", frame_);
-//
-//    // Esc
-//    if (cv::waitKey(1) == 27) {
-//        video_capture_.release();
-//        cv::destroyAllWindows();
-//    }
-//}
+void BasicApp::showOpenCVWindow() {
+
+    cv::imshow("Frame", frame_);
+
+    // Esc
+    if (cv::waitKey(1) == 27) {
+        video_capture_.release();
+        cv::destroyAllWindows();
+    }
+}
 
 CINDER_APP(BasicApp, RendererGl, prepareSettings)
 
