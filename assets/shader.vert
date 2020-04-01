@@ -2,7 +2,6 @@
 
 // Cinder will automatically send the default matrices and attributes to our shader.
 uniform mat4 ciModelViewProjection;
-
 in vec4 ciPosition;
 
 

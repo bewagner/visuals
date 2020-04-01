@@ -66,7 +66,7 @@ void BasicApp::draw() {
     mouse_pos.x /= static_cast<float>(getWindowWidth());
     mouse_pos.y /= static_cast<float>(getWindowHeight());
     shader->uniform("mousePosition", mouse_pos);
-
+    shader->uniform("uResolution", vec2(getWindowSize()));
     gl::drawSolidRect(getWindowBounds());
 }
 
