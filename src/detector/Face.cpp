@@ -2,7 +2,7 @@
 // Created by benjamin on 27.03.20.
 //
 
-#include <Face.h>
+#include <detector/Face.h>
 #include <utility>
 #include <exception>
 #include <numeric>

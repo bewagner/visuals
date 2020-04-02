@@ -6,8 +6,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SOURCES
         src/main.cpp
-        src/FaceDetector.cpp src/KeypointDetector.cpp include/KeypointDetector.h src/Face.cpp
-        "${PROJECT_SOURCE_DIR}/assets/res10_300x300_ssd_iter_140000_fp16.caffemodel")
+        src/detector/FaceDetector.cpp
+        src/detector/KeypointDetector.cpp
+        src/detector/Face.cpp
+        src/detector/detector.cpp
+        "${PROJECT_SOURCE_DIR}/assets/res10_300x300_ssd_iter_140000_fp16.caffemodel" )
 
 # Cinder setup
 #add_subdirectory(Cinder)
