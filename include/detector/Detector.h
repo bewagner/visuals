@@ -7,16 +7,16 @@
 
 #include <vector>
 #include <opencv4/opencv2/opencv.hpp>
-#include "detector/Face.h"
 #include "detector/FaceDetector.h"
 #include "detector/KeypointDetector.h"
-
+#include "detector/FaceKeypoints.h"
+#include "detector/PairOfEyes.h"
 
 class Detector {
 public:
     /// TODO
     /// \return
-    std::vector<cv::Point2f> detect(const cv::Mat &frame);
+    std::vector<PairOfEyes> detect(const cv::Mat &frame);
 
 private:
     /// TODO
@@ -26,17 +26,17 @@ private:
     /// TODO
     cv::Mat last_frame_grayscale_;
     /// TODO
-    std::vector<cv::Point2f> detected_eyes_;
+    std::vector<PairOfEyes> detected_eye_pairs_;
     /// TODO
     FaceDetector face_rectangle_detector;
     /// TODO
     KeypointDetector face_keypoint_detector;
 
 
-    std::vector<cv::Point2f> run_detection(const cv::Mat &frame);
+    std::vector<PairOfEyes> run_detection(const cv::Mat &frame);
 
-    std::vector<cv::Point2f> run_tracking(const cv::Mat &current_frame_grayscale, const cv::Mat &last_frame_grayscale,
-                                          const std::vector<cv::Point2f> &old_eyes) const;
+    std::vector<PairOfEyes> run_tracking(const cv::Mat &current_frame_grayscale, const cv::Mat &last_frame_grayscale,
+                                          const std::vector<PairOfEyes> &old_eyes) const;
 };
 
 

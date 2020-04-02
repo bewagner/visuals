@@ -2,15 +2,15 @@
 // Created by benjamin on 27.03.20.
 //
 
-#ifndef VISUALS_FACE_H
-#define VISUALS_FACE_H
+#ifndef VISUALS_FACEKEYPOINTS_H
+#define VISUALS_FACEKEYPOINTS_H
 
 #include <vector>
 #include <opencv4/opencv2/opencv.hpp>
 
-struct Face {
+struct FaceKeypoints {
 
-    explicit Face(std::vector<cv::Point2f> all_points);
+    explicit FaceKeypoints(std::vector<cv::Point2f> all_points);
 
     cv::Point2f left_eye_center() const;
 
@@ -32,4 +32,4 @@ struct Face {
 };
 
 
-#endif //VISUALS_FACE_H
+#endif //VISUALS_FACEKEYPOINTS_H

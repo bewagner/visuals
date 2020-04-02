@@ -2,7 +2,7 @@
 // Created by benjamin on 27.03.20.
 //
 
-#include <detector/Face.h>
+#include <detector/FaceKeypoints.h>
 #include <utility>
 #include <exception>
 #include <numeric>
@@ -22,7 +22,7 @@ cv::Point2f mean_point(const std::vector<cv::Point2f> &points) {
     return summed_points / static_cast<float>(points.size());
 }
 
-Face::Face(std::vector<cv::Point2f> all_points) : keypoints(std::move(all_points)) {
+FaceKeypoints::FaceKeypoints(std::vector<cv::Point2f> all_points) : keypoints(std::move(all_points)) {
     int number_of_points_opencv_keypoint_detector_detects = 68;
     if (keypoints.size() != number_of_points_opencv_keypoint_detector_detects) {
         throw std::invalid_argument("Number of keypoints to construct face was not " +
@@ -30,42 +30,42 @@ Face::Face(std::vector<cv::Point2f> all_points) : keypoints(std::move(all_points
     }
 }
 
-cv::Point2f Face::left_eye_center() const {
+cv::Point2f FaceKeypoints::left_eye_center() const {
     return mean_point(left_eye());
 }
 
-cv::Point2f Face::right_eye_center() const {
+cv::Point2f FaceKeypoints::right_eye_center() const {
     return mean_point(right_eye());
     }
 
-cv::Point2f Face::mouth_center() const {
+cv::Point2f FaceKeypoints::mouth_center() const {
     return mean_point(mouth());
 }
 
-std::vector<cv::Point2f> Face::jawline() const {
+std::vector<cv::Point2f> FaceKeypoints::jawline() const {
     return vector_subset(keypoints, 0, 16);
 }
 
-std::vector<cv::Point2f> Face::right_eyebrow() const {
+std::vector<cv::Point2f> FaceKeypoints::right_eyebrow() const {
     return vector_subset(keypoints, 17, 21);
 }
 
-std::vector<cv::Point2f> Face::left_eyebrow() const {
+std::vector<cv::Point2f> FaceKeypoints::left_eyebrow() const {
     return vector_subset(keypoints, 22, 26);
 }
 
-std::vector<cv::Point2f> Face::nose() const {
+std::vector<cv::Point2f> FaceKeypoints::nose() const {
     return vector_subset(keypoints, 27, 35);
 }
 
-std::vector<cv::Point2f> Face::right_eye() const {
+std::vector<cv::Point2f> FaceKeypoints::right_eye() const {
     return vector_subset(keypoints, 36, 41);
 }
 
-std::vector<cv::Point2f> Face::left_eye() const {
+std::vector<cv::Point2f> FaceKeypoints::left_eye() const {
     return vector_subset(keypoints, 42, 47);
 }
 
-std::vector<cv::Point2f> Face::mouth() const {
+std::vector<cv::Point2f> FaceKeypoints::mouth() const {
     return vector_subset(keypoints, 48, 67);
 }

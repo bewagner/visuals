@@ -8,9 +8,11 @@ set(SOURCES
         src/main.cpp
         src/detector/FaceDetector.cpp
         src/detector/KeypointDetector.cpp
-        src/detector/Face.cpp
-        src/detector/detector.cpp
-        "${PROJECT_SOURCE_DIR}/assets/res10_300x300_ssd_iter_140000_fp16.caffemodel" )
+        src/detector/FaceKeypoints.cpp
+        src/detector/Detector.cpp
+        "${PROJECT_SOURCE_DIR}/assets/res10_300x300_ssd_iter_140000_fp16.caffemodel"
+        include/detector/PairOfEyes.h
+        )
 
 # Cinder setup
 #add_subdirectory(Cinder)
