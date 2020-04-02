@@ -6,7 +6,7 @@
 #include <sstream>
 #include <vector>
 #include <string>
-#include <FaceDetector.h>
+#include <detector/FaceDetector.h>
 #include <opencv4/opencv2/opencv.hpp>
 
 FaceDetector::FaceDetector() : confidence_threshold_(0.5), input_image_height_(300), input_image_width_(300),
@@ -24,7 +24,7 @@ FaceDetector::FaceDetector() : confidence_threshold_(0.5), input_image_height_(3
     }
 }
 
-std::vector<cv::Rect> FaceDetector::detect_faces(const cv::Mat &frame) {
+std::vector<cv::Rect> FaceDetector::detect_face_rectangles(const cv::Mat &frame) {
     cv::Mat input_blob = cv::dnn::blobFromImage(frame, scale_factor_, cv::Size(input_image_width_, input_image_height_),
                                                 mean_values_, false, false);
     network_.setInput(input_blob, "data");

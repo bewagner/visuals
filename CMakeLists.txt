@@ -3,9 +3,11 @@ project(visuals LANGUAGES CXX)
 
 set(SOURCES
         src/main.cpp
-        src/FaceDetector.cpp
-        src/KeypointDetector.cpp
-        src/Face.cpp
+        src/detector/Detector.cpp
+        src/detector/FaceDetector.cpp
+        src/detector/FaceKeypoints.cpp
+        src/detector/KeypointDetector.cpp
+        include/detector/PairOfEyes.h
         )
 
 # Cinder setup

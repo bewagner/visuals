@@ -1,11 +1,10 @@
 #include <iostream>
-#include "FaceDetector.h"
-#include "KeypointDetector.h"
+#include "detector/Detector.h"
 #include <opencv4/opencv2/opencv.hpp>
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
-#include "CinderOpenCV.h"
+
 
 using namespace ci;
 using namespace ci::app;
@@ -15,7 +14,6 @@ public:
 
     BasicApp();
 
-    void mouseDrag(MouseEvent event) override;
 
     void keyDown(KeyEvent event) override;
 
@@ -24,13 +22,11 @@ public:
     void update() override;
 
 private:
-    void showOpenCVWindow();
-    std::vector<Face> faceDetectionPipeline();
+    void showOpenCVWindow(const cv::Mat &frame);
 
+    Detector detector_;
+    std::vector<PairOfEyes> eye_pairs_;
     cv::VideoCapture video_capture_;
-    cv::Mat frame_;
-    FaceDetector face_detector;
-    KeypointDetector keypoint_detector;
     gl::GlslProgRef shader;
 };
 
@@ -38,8 +34,6 @@ void prepareSettings(BasicApp::Settings *settings) {
     settings->setMultiTouchEnabled(false);
 }
 
-void BasicApp::mouseDrag(MouseEvent event) {
-}
 
 void BasicApp::keyDown(KeyEvent event) {
 
@@ -57,34 +51,31 @@ void BasicApp::keyDown(KeyEvent event) {
 }
 
 void BasicApp::draw() {
-    auto detected_faces = faceDetectionPipeline();
-
     // Clear the contents of the window. This call will clear
     // both the color and depth buffers.
     gl::clear();
     gl::ScopedGlslProg s(shader);
 
     vec2 face_position = vec2(-1.);
-    if (!detected_faces.empty()) {
-        auto left_eye = detected_faces.front().left_eye();
+    if (!eye_pairs_.empty()) {
+        auto left_eye = eye_pairs_.front().left_eye;
 
-        face_position.x = left_eye[0].x / getWindowWidth();
-        face_position.y = left_eye[1].y / getWindowHeight();
-        std::cout << face_position << std::endl;
+        face_position.x = left_eye.x / static_cast<float>(getWindowWidth());
+        face_position.y = left_eye.y / static_cast<float>(getWindowHeight());
     }
-
-
-
 
     shader->uniform("facePosition", face_position);
     shader->uniform("uResolution", vec2(getWindowSize()));
     gl::drawSolidRect(getWindowBounds());
-    showOpenCVWindow();
+
 }
 
 void BasicApp::update() {
+    cv::Mat frame;
+    video_capture_ >> frame;
+    eye_pairs_ = detector_.detect(frame);
 
-
+    showOpenCVWindow(frame);
 }
 
 BasicApp::BasicApp() {
@@ -101,30 +92,15 @@ BasicApp::BasicApp() {
     shader = gl::GlslProg::create(loadAsset("shader.vert"), loadAsset("shader.frag"));
 }
 
-std::vector<Face> BasicApp::faceDetectionPipeline() {
-    video_capture_ >> frame_;
-    if (frame_.empty()) {
-        return std::vector<Face>();
-    }
-    if (frame_.channels() == 4) {
-        cv::cvtColor(frame_, frame_, cv::COLOR_BGRA2BGR);
+
+void BasicApp::showOpenCVWindow(const cv::Mat &frame) {
+
+    for (const auto &eye_pair : eye_pairs_) {
+        eye_pair.draw(frame);
     }
 
-    auto detected_faces = face_detector.detect_faces(frame_);
-//    face_detector.draw_rectangles_around_detected_faces(detected_faces, frame_);
+    cv::imshow("Frame", frame);
 
-    auto detected_keypoints = keypoint_detector.detect_keypoints(detected_faces, frame_);
-    keypoint_detector.draw_detected_keypoints(detected_keypoints, frame_);
-
-    return detected_keypoints;
-
-}
-
-void BasicApp::showOpenCVWindow() {
-
-    cv::imshow("Frame", frame_);
-
-    // Esc
     if (cv::waitKey(1) == 27) {
         video_capture_.release();
         cv::destroyAllWindows();
