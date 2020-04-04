@@ -8,6 +8,7 @@ set(SOURCES
         src/detector/FaceKeypoints.cpp
         src/detector/KeypointDetector.cpp
         include/detector/PairOfEyes.h
+        src/CameraHandler.cpp
         )
 
 # Cinder setup

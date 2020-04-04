@@ -1,5 +1,6 @@
 #include <iostream>
 #include "detector/Detector.h"
+#include "CameraHandler.h"
 #include <opencv4/opencv2/opencv.hpp>
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
@@ -26,8 +27,9 @@ private:
     void showOpenCVWindow(const cv::Mat &frame);
 
     Detector detector_;
+    CameraHandler camera_handler_;
     std::vector<PairOfEyes> eye_pairs_;
-    cv::VideoCapture video_capture_;
+
     gl::GlslProgRef shader;
 
     const int max_number_of_eye_pairs_ = 10;
@@ -75,9 +77,7 @@ void BasicApp::draw() {
 }
 
 void BasicApp::update() {
-    cv::Mat frame;
-    video_capture_ >> frame;
-    eye_pairs_ = detector_.detect(frame);
+    eye_pairs_ = detector_.detect(camera_handler_.next_frame());
 
 
     auto *pair_ubo = (PairOfEyes *) eye_positions_ubo_->mapWriteOnly();
@@ -94,18 +94,11 @@ void BasicApp::update() {
         ++pair_counter;
     }
     eye_positions_ubo_->unmap();
+
 }
 
 BasicApp::BasicApp() {
-    const int max_number_of_cameras_to_try = 10;
-    for (int i = 0; i < max_number_of_cameras_to_try; ++i) {
-        if (video_capture_.open(i)) {
-            break;
-        }
-    }
-    if (!video_capture_.isOpened()) {
-        throw std::invalid_argument("Video capture could not find camera.");
-    }
+
 
     shader = gl::GlslProg::create(loadAsset("shader.vert"), loadAsset("shader.frag"));
     eye_positions_ubo_ = gl::Ubo::create(sizeof(PairOfEyes) * max_number_of_eye_pairs_, eye_pairs_.data());
@@ -122,7 +115,6 @@ void BasicApp::showOpenCVWindow(const cv::Mat &frame) {
     cv::imshow("Frame", frame);
 
     if (cv::waitKey(1) == 27) {
-        video_capture_.release();
         cv::destroyAllWindows();
     }
 }
