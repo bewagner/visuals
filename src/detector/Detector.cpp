@@ -16,14 +16,14 @@ std::vector<PairOfEyes> Detector::detect(const cv::Mat &frame) {
     cv::cvtColor(frame, frame_grayscale, cv::COLOR_BGR2GRAY);
 
 
-    if (frame_counter_ > frequency_of_detection_frames_ || detected_eye_pairs_.empty()) {
+    if (frame_counter_ > frequency_of_detection_frames_) {
         frame_counter_ = 0;
         detected_eye_pairs_ = run_detection(frame);
     } else {
-        frame_counter_++;
         detected_eye_pairs_ = run_tracking(frame_grayscale, last_frame_grayscale_, detected_eye_pairs_);
     }
 
+    ++frame_counter_;
     last_frame_grayscale_ = frame_grayscale.clone();
     return detected_eye_pairs_;
 }

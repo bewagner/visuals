@@ -94,8 +94,6 @@ void BasicApp::update() {
         ++pair_counter;
     }
     eye_positions_ubo_->unmap();
-
-//    showOpenCVWindow(frame);
 }
 
 BasicApp::BasicApp() {
@@ -110,10 +108,8 @@ BasicApp::BasicApp() {
     }
 
     shader = gl::GlslProg::create(loadAsset("shader.vert"), loadAsset("shader.frag"));
-
     eye_positions_ubo_ = gl::Ubo::create(sizeof(PairOfEyes) * max_number_of_eye_pairs_, eye_pairs_.data());
     eye_positions_ubo_->bindBufferBase(0);
-
 }
 
 
