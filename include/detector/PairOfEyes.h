@@ -24,6 +24,22 @@ public:
         }
     }
 
+    PairOfEyes normalized_to_window_size(const float width, const float height) const {
+        PairOfEyes normalized{*this};
+
+        normalized.left_eye.x /= width;
+        normalized.left_eye.y /= height;
+        normalized.left_eye.x = 1.-normalized.left_eye.x;
+        normalized.left_eye.y = 1.-normalized.left_eye.y;
+
+        normalized.right_eye.x /= width;
+        normalized.right_eye.y /= height;
+        normalized.right_eye.x = 1.-normalized.right_eye.x;
+        normalized.right_eye.y = 1.-normalized.right_eye.y;
+
+        return normalized;
+    }
+
     double distance_between_eyes() const {
         return cv::norm(left_eye - right_eye);
     }

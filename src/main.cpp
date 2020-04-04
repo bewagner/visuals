@@ -4,6 +4,7 @@
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
+#include "cinder/gl/Ubo.h"
 
 
 using namespace ci;
@@ -28,6 +29,9 @@ private:
     std::vector<PairOfEyes> eye_pairs_;
     cv::VideoCapture video_capture_;
     gl::GlslProgRef shader;
+
+    const int max_number_of_eye_pairs_ = 10;
+    gl::UboRef eye_positions_ubo_;
 };
 
 void prepareSettings(BasicApp::Settings *settings) {
@@ -75,7 +79,23 @@ void BasicApp::update() {
     video_capture_ >> frame;
     eye_pairs_ = detector_.detect(frame);
 
-    showOpenCVWindow(frame);
+
+    auto *pair_ubo = (PairOfEyes *) eye_positions_ubo_->mapWriteOnly();
+    int pair_counter = 0;
+    for (const auto &pair_cpu : eye_pairs_) {
+        *pair_ubo = pair_cpu.normalized_to_window_size(getWindowWidth(), getWindowHeight());
+        ++pair_ubo;
+        ++pair_counter;
+    }
+    while (pair_counter < max_number_of_eye_pairs_) {
+        pair_ubo->left_eye = {-1., -1.};
+        pair_ubo->right_eye = {-1., -1.};
+        ++pair_ubo;
+        ++pair_counter;
+    }
+    eye_positions_ubo_->unmap();
+
+//    showOpenCVWindow(frame);
 }
 
 BasicApp::BasicApp() {
@@ -90,6 +110,10 @@ BasicApp::BasicApp() {
     }
 
     shader = gl::GlslProg::create(loadAsset("shader.vert"), loadAsset("shader.frag"));
+
+    eye_positions_ubo_ = gl::Ubo::create(sizeof(PairOfEyes) * max_number_of_eye_pairs_, eye_pairs_.data());
+    eye_positions_ubo_->bindBufferBase(0);
+
 }
 
 
