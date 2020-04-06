@@ -2,13 +2,17 @@ cmake_minimum_required(VERSION 3.0)
 project(visuals LANGUAGES CXX)
 
 set(SOURCES
-        src/main.cpp
+        #         src/main.cpp
+        src/NVidiaComputeParticlesApp.cpp
+        src/CameraHandler.cpp
         src/detector/Detector.cpp
         src/detector/FaceDetector.cpp
         src/detector/FaceKeypoints.cpp
         src/detector/KeypointDetector.cpp
+
         include/detector/PairOfEyes.h
-        src/CameraHandler.cpp
+        include/ScopedBufferBase.h
+        include/Ssbo.h
         )
 
 # Cinder setup

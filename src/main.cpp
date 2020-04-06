@@ -108,15 +108,7 @@ BasicApp::BasicApp() {
 
 void BasicApp::showOpenCVWindow(const cv::Mat &frame) {
 
-    for (const auto &eye_pair : eye_pairs_) {
-        eye_pair.draw(frame);
-    }
 
-    cv::imshow("Frame", frame);
-
-    if (cv::waitKey(1) == 27) {
-        cv::destroyAllWindows();
-    }
 }
 
 CINDER_APP(BasicApp, RendererGl, prepareSettings)

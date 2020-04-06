@@ -16,8 +16,24 @@ CameraHandler::CameraHandler() {
     }
 }
 
-cv::Mat CameraHandler::next_frame() {
-    cv::Mat frame;
-    video_capture_ >> frame;
-    return frame;
+const cv::Mat &CameraHandler::next_frame() {
+    video_capture_ >> frame_;
+    return frame_;
+}
+
+template<typename T>
+void CameraHandler::show_openCV_window(const std::vector<T> &objects) {
+    for (const auto &object : objects) {
+        object.draw(frame_);
+    }
+    show_openCV_window();
+}
+
+void CameraHandler::show_openCV_window() {
+    cv::imshow("Frame", frame_);
+
+    if (cv::waitKey(1) == 27) {
+        cv::destroyAllWindows();
+        video_capture_.release();
+    }
 }
