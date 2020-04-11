@@ -92,7 +92,7 @@ public:
     void setupNoiseTexture3D();
 
     enum {
-        WORK_GROUP_SIZE = 128, NUM_PARTICLES = 1u << 18
+        WORK_GROUP_SIZE = 128, NUM_PARTICLES = 1u << 12
     };
 
     gl::VboRef mVBO;
@@ -112,7 +112,7 @@ public:
     ParticleParams mParticleParams;
     float mSpriteSize;
     bool mEnableAttractor;
-    bool mAnimate;
+
     bool mReset;
     float mTime;
     float mPrevElapsedSeconds;
@@ -127,12 +127,12 @@ NVidiaComputeParticlesApp::NVidiaComputeParticlesApp()
           mParticleParams(mNoiseSize),
           mSpriteSize(0.015f),
           mEnableAttractor(false),
-          mAnimate(true),
+
           mReset(false),
           mTime(0.0f),
           mPrevElapsedSeconds(0.0f) {
     mEnableAttractor = false;
-    mAnimate = true;
+
     mReset = false;
     mTime = 0.0f;
     mPrevElapsedSeconds = 0.0f;
@@ -149,7 +149,6 @@ NVidiaComputeParticlesApp::NVidiaComputeParticlesApp()
 
     mParams = params::InterfaceGl::create("Settings", toPixels(ivec2(225, 180)));
     mParams->addSeparator();
-    mParams->addParam("Animate", &mAnimate);
     mParams->addParam("Enable attractor", &mEnableAttractor);
     mParams->addSeparator();
     mParams->addParam("Sprite size", &(mSpriteSize)).min(0.0f).max(0.04f).step(0.01f);
@@ -212,11 +211,9 @@ void NVidiaComputeParticlesApp::setupBuffers() {
 }
 
 void NVidiaComputeParticlesApp::update() {
-    
-    detector.detect(cameraHandler.next_frame());
 
-    if (mAnimate)
-        updateParticleSystem();
+//    detector.detect(cameraHandler.next_frame());
+    updateParticleSystem();
 }
 
 void NVidiaComputeParticlesApp::draw() {
@@ -267,19 +264,63 @@ void NVidiaComputeParticlesApp::resetParticleSystem(float size) {
     mVel->unmap();
 }
 
+// Unproject a coordinate back to to camera
+vec3 unproject(const vec3 &point, const CameraPersp &cam, const ivec2 &window_size) {
+    // Find the inverse Modelview-Projection-Matrix
+    mat4 mInvMVP = glm::inverse(cam.getProjectionMatrix() * cam.getViewMatrix());
+
+    // Transform to normalized coordinates in the range [-1, 1]
+    vec4 pointNormal;
+//    pointNormal.x = (point.x - mViewport.getX1()) / mViewport.getWidth() * 2.0f - 1.0f;
+//    pointNormal.y = (point.y - mViewport.getY1()) / mViewport.getHeight() * 2.0f;
+    pointNormal.x = (point.x) / window_size.x * 2.0f - 1.0f;
+    pointNormal.y = (point.y) / window_size.y * 2.0f;
+    pointNormal.z = 2.0f * point.z - 1.0f;
+    pointNormal.w = 1.0f;
+
+    // Find the object's coordinates
+    vec4 pointCoord = mInvMVP * pointNormal;
+    if (pointCoord.w != 0.0f) {
+        pointCoord.w = 1.0f / pointCoord.w;
+    }
+
+
+    // Return coordinate
+    return vec3(
+            pointCoord.x * pointCoord.w,
+            pointCoord.y * pointCoord.w,
+            pointCoord.z * pointCoord.w
+    );
+
+}
+
+vec3 screenToWorld(const ivec2 &point, const CameraPersp &cam, const ivec2 &window_size) {
+
+    // Find near and far plane intersections
+    vec3 point3f = vec3((float) point.x, window_size.y * 0.5f - (float) point.y, 0.0f);
+    vec3 nearPlane = unproject(point3f, cam, window_size);
+    vec3 farPlane = unproject(vec3(point3f.x, point3f.y, 1.0f), cam, window_size);
+
+    // Calculate X, Y and return point
+    float theta = (0.0f - nearPlane.z) / (farPlane.z - nearPlane.z);
+    return vec3(
+            nearPlane.x + theta * (farPlane.x - nearPlane.x),
+            nearPlane.y + theta * (farPlane.y - nearPlane.y),
+            0.0f
+    );
+
+}
+
+
 void NVidiaComputeParticlesApp::updateParticleSystem() {
     mParticleParams.numParticles = NUM_PARTICLES;
     if (mEnableAttractor) {
         // move attractor
-        const float speed = 0.2f;
-        mParticleParams.attractor.x = math<float>::sin(mTime * speed);
-        mParticleParams.attractor.y = math<float>::sin(mTime * speed * 1.3f);
-        mParticleParams.attractor.z = math<float>::cos(mTime * speed);
-        auto elapsedSeconds = static_cast<float>( app::getElapsedSeconds());
-        mTime += elapsedSeconds - mPrevElapsedSeconds;
-        mPrevElapsedSeconds = elapsedSeconds;
 
-        mParticleParams.attractor.w = 0.0002f;
+        auto world_coordinate = screenToWorld(getMousePos(), mCam, getWindowSize());
+        mParticleParams.attractor = vec4(world_coordinate, 0.);
+        mParticleParams.attractor.w = 0.0001f;
+        std::cout << mParticleParams.attractor << std::endl;
     } else {
         mParticleParams.attractor.w = 0.0f;
     }
