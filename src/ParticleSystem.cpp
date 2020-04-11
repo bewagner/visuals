@@ -23,9 +23,9 @@ void ParticleSystem::setupNoiseTexture3D() {
     tex3dFmt.setDataType(GL_FLOAT);
     tex3dFmt.setInternalFormat(GL_RGBA8_SNORM);
 
-    const int width = noise_size;
-    const int height = noise_size;
-    const int depth = noise_size;
+    const int width = noise_size_;
+    const int height = noise_size_;
+    const int depth = noise_size_;
 
     std::vector<float> data(width * height * depth * 4);
     int i = 0;
@@ -40,14 +40,14 @@ void ParticleSystem::setupNoiseTexture3D() {
         }
     }
 
-    noise_texture = ci::gl::Texture3d::create(noise_size, noise_size, noise_size, tex3dFmt);
-    noise_texture->update(data.data(), GL_RGBA, tex3dFmt.getDataType(), 0, noise_texture->getWidth(),
-                          noise_texture->getHeight(), noise_texture->getDepth());
+    noise_texture_ = ci::gl::Texture3d::create(noise_size_, noise_size_, noise_size_, tex3dFmt);
+    noise_texture_->update(data.data(), GL_RGBA, tex3dFmt.getDataType(), 0, noise_texture_->getWidth(),
+                           noise_texture_->getHeight(), noise_texture_->getDepth());
 }
 
 void ParticleSystem::setupBuffers() {
-    position_ssbo = ci::gl::Ssbo::create(sizeof(ci::vec4) * NUM_PARTICLES, nullptr, GL_STATIC_DRAW);
-    velocity_ssbo = ci::gl::Ssbo::create(sizeof(ci::vec4) * NUM_PARTICLES, nullptr, GL_STATIC_DRAW);
+    position_ssbo_ = ci::gl::Ssbo::create(sizeof(ci::vec4) * NUM_PARTICLES, nullptr, GL_STATIC_DRAW);
+    velocity_ssbo_ = ci::gl::Ssbo::create(sizeof(ci::vec4) * NUM_PARTICLES, nullptr, GL_STATIC_DRAW);
 
     std::vector<uint32_t> indices(NUM_PARTICLES * 6);
     // the index buffer is a classic "two-tri quad" array.
@@ -65,22 +65,28 @@ void ParticleSystem::setupBuffers() {
         indices[j++] = index + 2;
         indices[j++] = index + 3;
     }
+    indices_vbo_ = ci::gl::Vbo::create<uint32_t>(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
 
-    indices_vbo = ci::gl::Vbo::create<uint32_t>(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
+    particle_update_ubo_ = ci::gl::Ubo::create(sizeof(parameters), &parameters, GL_DYNAMIC_DRAW);
+    particle_update_ubo_->bindBufferBase(0);
+
+    eye_positions_ubo_ = ci::gl::Ubo::create(sizeof(ci::vec4) * max_number_of_eye_pairs_, eye_positions_.data(),
+                                             GL_DYNAMIC_DRAW);
+    eye_positions_ubo_->bindBufferBase(3);
 }
 
 void ParticleSystem::reset(float size) {
-    auto *pos = reinterpret_cast<ci::vec4 *>( position_ssbo->map(GL_WRITE_ONLY));
+    auto *pos = reinterpret_cast<ci::vec4 *>( position_ssbo_->map(GL_WRITE_ONLY));
     for (size_t i = 0; i < NUM_PARTICLES; ++i) {
         pos[i] = ci::vec4(sfrand() * size, sfrand() * size, sfrand() * size, 1.0f);
     }
-    position_ssbo->unmap();
+    position_ssbo_->unmap();
 
-    auto *vel = reinterpret_cast<ci::vec4 *>( velocity_ssbo->map(GL_WRITE_ONLY));
+    auto *vel = reinterpret_cast<ci::vec4 *>( velocity_ssbo_->map(GL_WRITE_ONLY));
     for (size_t i = 0; i < NUM_PARTICLES; ++i) {
         vel[i] = ci::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     }
-    velocity_ssbo->unmap();
+    velocity_ssbo_->unmap();
 }
 
 
@@ -127,21 +133,30 @@ ci::vec3 screenToWorld(const ci::ivec2 &point, const ci::CameraPersp &cam, const
 
 void ParticleSystem::update(const ci::ivec2 &mouse_position, const ci::CameraPersp &cam, const ci::ivec2 &window_size) {
     parameters.numParticles = NUM_PARTICLES;
-    // TODO
-    auto world_coordinate = screenToWorld(mouse_position, cam, window_size);
-    parameters.attractor = ci::vec4(world_coordinate, 0.);
-    parameters.attractor.w = 0.0001f;
-
 
     // Invoke the compute shader to integrate the particles
-    ci::gl::ScopedGlslProg prog(update_program);
+    ci::gl::ScopedGlslProg prog(update_program_);
 
-    particle_update_ubo->bufferSubData(0, sizeof(parameters), &parameters);
-    ci::gl::ScopedTextureBind scoped3dTex(noise_texture);
+    // TODO
+    auto world_coordinate = ci::vec4(screenToWorld(mouse_position, cam, window_size), 0.0002f);
+
+    auto *pair_ubo = (ci::vec4 *) eye_positions_ubo_->mapWriteOnly();
+    for (int i = 0; i < max_number_of_eye_pairs_; ++i) {
+        auto current_coordinate = world_coordinate;
+        current_coordinate.x += i * 0.1;
+        current_coordinate.y += i * 0.1;
+        *pair_ubo = current_coordinate;
+        pair_ubo++;
+    }
+    eye_positions_ubo_->unmap();
 
 
-    ci::gl::bindBufferBase(position_ssbo->getTarget(), 1, position_ssbo);
-    ci::gl::bindBufferBase(position_ssbo->getTarget(), 2, velocity_ssbo);
+    particle_update_ubo_->bufferSubData(0, sizeof(parameters), &parameters);
+    ci::gl::ScopedTextureBind scoped3dTex(noise_texture_);
+
+
+    ci::gl::bindBufferBase(position_ssbo_->getTarget(), 1, position_ssbo_);
+    ci::gl::bindBufferBase(position_ssbo_->getTarget(), 2, velocity_ssbo_);
 
     ci::gl::dispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
     // We need to block here on compute completion to ensure that the
@@ -150,12 +165,13 @@ void ParticleSystem::update(const ci::ivec2 &mouse_position, const ci::CameraPer
 }
 
 void ParticleSystem::setupShaders() {
-    update_program = ci::gl::GlslProg::create(ci::gl::GlslProg::Format().compute(ci::app::loadAsset("particles.comp")));
+    update_program_ = ci::gl::GlslProg::create(
+            ci::gl::GlslProg::Format().compute(ci::app::loadAsset("particles.comp")));
     // Particle update ubo.
-    particle_update_ubo = ci::gl::Ubo::create(sizeof(parameters), &parameters, GL_DYNAMIC_DRAW);
-    particle_update_ubo->bindBufferBase(0);
-    update_program->uniformBlock("ParticleParams", 0);
-    update_program->uniform("noiseTex3D", 0);
+
+    update_program_->uniformBlock("ParticleParams", 0);
+    update_program_->uniformBlock("EyePositions", 3);
+    update_program_->uniform("noiseTex3D", 0);
 }
 
 void ParticleSystem::draw() const {
@@ -165,15 +181,15 @@ void ParticleSystem::draw() const {
 
     ci::gl::disable(GL_DEPTH_TEST);
     ci::gl::disable(GL_CULL_FACE);
-    ci::gl::bindBufferBase(position_ssbo->getTarget(), 1, position_ssbo);
-    ci::gl::ScopedBuffer scopedIndicex(indices_vbo);
+    ci::gl::bindBufferBase(position_ssbo_->getTarget(), 1, position_ssbo_);
+    ci::gl::ScopedBuffer scopedIndicex(indices_vbo_);
     ci::gl::drawElements(GL_TRIANGLES, NUM_PARTICLES * 6, GL_UNSIGNED_INT, nullptr);
 
     ci::gl::disableAlphaBlending();
 }
 
-ParticleSystem::ParticleSystem() : noise_size(16),
-                                   parameters(static_cast<float>(noise_size)) {
+ParticleSystem::ParticleSystem() :
+        parameters(16.), noise_size_(16) {
     setupNoiseTexture3D();
     setupBuffers();
     setupShaders();

@@ -12,14 +12,11 @@ class ParticleSystem {
 public:
     struct Parameters {
         explicit Parameters(float noiseSize)
-                : attractor(0.0f, 0.0f, 0.0f, 0.0f),
-                  damping(0.95f),
+                : damping(0.95f),
                   noiseFreq(10.0f),
                   noiseStrength(0.001f),
                   invNoiseSize(1.0f / noiseSize) {
         }
-
-        ci::vec4 attractor;
         float numParticles{};
         float damping;
         float noiseFreq;
@@ -27,15 +24,8 @@ public:
         float invNoiseSize;
     };
 
-
-    const int noise_size;
     Parameters parameters;
-    ci::gl::SsboRef position_ssbo;
-    ci::gl::SsboRef velocity_ssbo;
-    ci::gl::Texture3dRef noise_texture;
-    ci::gl::VboRef indices_vbo;
-    ci::gl::UboRef particle_update_ubo;
-    ci::gl::GlslProgRef update_program;
+
 
     explicit ParticleSystem();
 
@@ -46,6 +36,19 @@ public:
     void draw() const;
 
 private:
+
+    const int noise_size_;
+    ci::gl::SsboRef position_ssbo_;
+    ci::gl::SsboRef velocity_ssbo_;
+    ci::gl::Texture3dRef noise_texture_;
+    ci::gl::VboRef indices_vbo_;
+    ci::gl::UboRef particle_update_ubo_;
+    ci::gl::GlslProgRef update_program_;
+
+    static const int max_number_of_eye_pairs_ = 5;
+    std::array<ci::vec4, max_number_of_eye_pairs_> eye_positions_;
+    ci::gl::UboRef eye_positions_ubo_;
+
     void setupNoiseTexture3D();
 
     void setupShaders();

@@ -38,10 +38,10 @@
 
 //#UNIFORMS
 #define WORK_GROUP_SIZE 128
+#define NUMBER_OF_EYE_PAIRS 5
 
 layout(std140, binding = 0) uniform ParticleParams
 {
-    uniform vec4    attractor;
     uniform float    numParticles;
     uniform float    damping;
     uniform float    noiseFreq;
@@ -57,6 +57,10 @@ layout(std140, binding = 1) buffer Pos {
 
 layout(std140, binding = 2) buffer Vel {
     vec4 vel[];
+};
+
+layout(std140, binding = 3) uniform EyePositions {
+    vec4 eye_positions[NUMBER_OF_EYE_PAIRS];
 };
 
 layout(local_size_x = WORK_GROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
@@ -109,7 +113,12 @@ void main()
     vec3 v = vel[i].xyz;
 
     v += fBm3f(p * noiseFreq, 4, 2.0, 0.5) * noiseStrength;
-    v += attract(p, attractor.xyz) * attractor.w;
+
+    for (uint j=0; j<NUMBER_OF_EYE_PAIRS; ++j) {
+        vec4 current_attractor = eye_positions[j];
+        v += attract(p, current_attractor.xyz) * current_attractor.w;
+    }
+
 
     // Integrate
     p += v;
