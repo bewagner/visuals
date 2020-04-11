@@ -158,10 +158,18 @@ void ParticleSystem::setupShaders() {
     update_program->uniform("noiseTex3D", 0);
 }
 
-void ParticleSystem::draw() {
+void ParticleSystem::draw() const {
+    ci::gl::context()->setDefaultShaderVars();
+
+    ci::gl::enableAdditiveBlending();
+
+    ci::gl::disable(GL_DEPTH_TEST);
+    ci::gl::disable(GL_CULL_FACE);
     ci::gl::bindBufferBase(position_ssbo->getTarget(), 1, position_ssbo);
     ci::gl::ScopedBuffer scopedIndicex(indices_vbo);
     ci::gl::drawElements(GL_TRIANGLES, NUM_PARTICLES * 6, GL_UNSIGNED_INT, nullptr);
+
+    ci::gl::disableAlphaBlending();
 }
 
 ParticleSystem::ParticleSystem() : noise_size(16),

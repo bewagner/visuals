@@ -28,7 +28,7 @@ public:
     };
 
 
-    int noise_size;
+    const int noise_size;
     Parameters parameters;
     ci::gl::SsboRef position_ssbo;
     ci::gl::SsboRef velocity_ssbo;
@@ -43,7 +43,7 @@ public:
 
     void update(const ci::ivec2 &mouse_position, const ci::CameraPersp &cam, const ci::ivec2 &window_size);
 
-    void draw();
+    void draw() const;
 
 private:
     void setupNoiseTexture3D();

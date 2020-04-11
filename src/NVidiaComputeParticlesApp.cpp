@@ -121,7 +121,6 @@ void NVidiaComputeParticlesApp::update() {
 }
 
 void NVidiaComputeParticlesApp::draw() {
-    // CI_CHECK_GL();
     gl::clear(ColorA(0.25f, 0.25f, 0.25f, 1.0f));
 
     if (mReset) {
@@ -133,20 +132,9 @@ void NVidiaComputeParticlesApp::draw() {
 
     // draw particles
     gl::ScopedGlslProg scopedRenderProg(mRenderProg);
-
     mRenderProg->uniform("spriteSize", 0.015f);
 
-    gl::context()->setDefaultShaderVars();
-
-    gl::enableAdditiveBlending();
-
-    gl::disable(GL_DEPTH_TEST);
-    gl::disable(GL_CULL_FACE);
-
     particle_system_.draw();
-
-
-    gl::disableAlphaBlending();
 
     mParams->draw();
 }
