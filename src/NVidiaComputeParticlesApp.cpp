@@ -57,11 +57,7 @@ public:
 
     void draw() override;
 
-
     void setupShaders();
-
-
-
 
     ParticleSystem particle_system_;
     gl::GlslProgRef mRenderProg;
@@ -69,9 +65,7 @@ public:
     params::InterfaceGlRef mParams;
     CameraPersp mCam;
     CameraUi mCamUi;
-    int mNoiseSize;
 
-    float mSpriteSize;
 
     bool mReset;
     float mTime;
@@ -83,7 +77,6 @@ public:
 
 NVidiaComputeParticlesApp::NVidiaComputeParticlesApp()
         : mCam(getWindowWidth(), getWindowHeight(), 45.0f, 0.1f, 10.0f),
-          mSpriteSize(0.015f),
           mReset(false),
           mTime(0.0f),
           mPrevElapsedSeconds(0.0f) {
@@ -92,21 +85,17 @@ NVidiaComputeParticlesApp::NVidiaComputeParticlesApp()
     mTime = 0.0f;
     mPrevElapsedSeconds = 0.0f;
 
-
-//    setupNoiseTexture3D();
     setupShaders();
-    //setupBuffers();
     particle_system_.reset(0.5f);
-
     CI_CHECK_GL();
 
     mCam.lookAt(vec3(0.0f, 0.0f, -3.0f), vec3(0));
 
     mParams = params::InterfaceGl::create("Settings", toPixels(ivec2(225, 180)));
     mParams->addSeparator();
-    mParams->addParam("Sprite size", &(mSpriteSize)).min(0.0f).max(0.04f).step(0.01f);
-    mParams->addParam("Noise strength", &(particle_system_.mParticleParams.noiseStrength)).min(0.0f).max(0.01f).step(0.001f);
-    mParams->addParam("Noise frequency", &(particle_system_.mParticleParams.noiseFreq)).min(0.0f).max(20.0f).step(1.0f);
+    mParams->addParam("Noise strength", &(particle_system_.parameters.noiseStrength)).min(0.0f).max(0.01f).step(
+            0.001f);
+    mParams->addParam("Noise frequency", &(particle_system_.parameters.noiseFreq)).min(0.0f).max(20.0f).step(1.0f);
     mParams->addSeparator();
     mParams->addParam("Reset", &mReset);
 
@@ -128,7 +117,7 @@ void NVidiaComputeParticlesApp::setupShaders() {
 void NVidiaComputeParticlesApp::update() {
 
 //    detector.detect(cameraHandler.next_frame());
-particle_system_.update(getMousePos(), mCam, getWindowSize());
+    particle_system_.update(getMousePos(), mCam, getWindowSize());
 }
 
 void NVidiaComputeParticlesApp::draw() {
@@ -144,7 +133,8 @@ void NVidiaComputeParticlesApp::draw() {
 
     // draw particles
     gl::ScopedGlslProg scopedRenderProg(mRenderProg);
-    mRenderProg->uniform("spriteSize", mSpriteSize);
+
+    mRenderProg->uniform("spriteSize", 0.015f);
 
     gl::context()->setDefaultShaderVars();
 
@@ -162,6 +152,8 @@ void NVidiaComputeParticlesApp::draw() {
 }
 
 CINDER_APP(NVidiaComputeParticlesApp, RendererGl(),
-           [&](App::Settings *settings) {
-               settings->setWindowSize(1280, 720);
-           })
+[&](
+App::Settings *settings
+) {
+settings->setWindowSize(1280, 720);
+})
