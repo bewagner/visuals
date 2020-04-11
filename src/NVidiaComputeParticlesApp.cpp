@@ -40,34 +40,13 @@
 #include "cinder/CameraUi.h"
 #include "cinder/Rand.h"
 #include "cinder/params/Params.h"
-#include "cinder/gl/Ssbo.h"
 #include "detector/Detector.h"
 #include "CameraHandler.h"
+#include "ParticleSystem.h"
 
 using namespace ci;
 using namespace ci::app;
 
-
-float sfrand() {
-    return randPosNegFloat(-1.0f, 1.0f);
-}
-
-struct ParticleParams {
-    explicit ParticleParams(float noiseSize)
-            : attractor(0.0f, 0.0f, 0.0f, 0.0f),
-              damping(0.95f),
-              noiseFreq(10.0f),
-              noiseStrength(0.001f),
-              invNoiseSize(1.0f / noiseSize) {
-    }
-
-    vec4 attractor;
-    float numParticles{};
-    float damping;
-    float noiseFreq;
-    float noiseStrength;
-    float invNoiseSize;
-};
 
 //! This sample was ported from https://github.com/NVIDIAGameWorks/OpenGLSamples/tree/master/samples/es3aep-kepler/ComputeParticles
 class NVidiaComputeParticlesApp : public App {
@@ -81,31 +60,17 @@ public:
 
     void setupShaders();
 
-    void setupBuffers();
 
-    void resetParticleSystem(float size);
 
-    void updateParticleSystem();
 
-    void setupNoiseTexture3D();
-
-    enum {
-        WORK_GROUP_SIZE = 128, NUM_PARTICLES = 1u << 18u
-    };
-
+    ParticleSystem particle_system_;
     gl::GlslProgRef mRenderProg;
-    gl::GlslProgRef mUpdateProg;
-    gl::SsboRef mPos;
-    gl::SsboRef mVel;
-    gl::VboRef mIndicesVbo;
-    gl::UboRef mParticleUpdateUbo;
 
-    gl::Texture3dRef mNoiseTex;
     params::InterfaceGlRef mParams;
     CameraPersp mCam;
     CameraUi mCamUi;
     int mNoiseSize;
-    ParticleParams mParticleParams;
+
     float mSpriteSize;
 
     bool mReset;
@@ -118,11 +83,7 @@ public:
 
 NVidiaComputeParticlesApp::NVidiaComputeParticlesApp()
         : mCam(getWindowWidth(), getWindowHeight(), 45.0f, 0.1f, 10.0f),
-          mNoiseSize(16),
-          mParticleParams(mNoiseSize),
           mSpriteSize(0.015f),
-
-
           mReset(false),
           mTime(0.0f),
           mPrevElapsedSeconds(0.0f) {
@@ -130,24 +91,22 @@ NVidiaComputeParticlesApp::NVidiaComputeParticlesApp()
     mReset = false;
     mTime = 0.0f;
     mPrevElapsedSeconds = 0.0f;
-    mNoiseSize = 16;
 
-    setupNoiseTexture3D();
+
+//    setupNoiseTexture3D();
     setupShaders();
-    setupBuffers();
-    resetParticleSystem(0.5f);
+    //setupBuffers();
+    particle_system_.reset(0.5f);
 
     CI_CHECK_GL();
 
     mCam.lookAt(vec3(0.0f, 0.0f, -3.0f), vec3(0));
 
     mParams = params::InterfaceGl::create("Settings", toPixels(ivec2(225, 180)));
-
-
     mParams->addSeparator();
     mParams->addParam("Sprite size", &(mSpriteSize)).min(0.0f).max(0.04f).step(0.01f);
-    mParams->addParam("Noise strength", &(mParticleParams.noiseStrength)).min(0.0f).max(0.01f).step(0.001f);
-    mParams->addParam("Noise frequency", &(mParticleParams.noiseFreq)).min(0.0f).max(20.0f).step(1.0f);
+    mParams->addParam("Noise strength", &(particle_system_.mParticleParams.noiseStrength)).min(0.0f).max(0.01f).step(0.001f);
+    mParams->addParam("Noise frequency", &(particle_system_.mParticleParams.noiseFreq)).min(0.0f).max(20.0f).step(1.0f);
     mParams->addSeparator();
     mParams->addParam("Reset", &mReset);
 
@@ -163,51 +122,13 @@ void NVidiaComputeParticlesApp::setupShaders() {
         ci::app::console() << e.what() << std::endl;
         quit();
     }
-
-    try {
-        mUpdateProg = gl::GlslProg::create(gl::GlslProg::Format().compute(loadAsset("particles.comp")));
-    }
-    catch (const gl::GlslProgCompileExc &e) {
-        ci::app::console() << e.what() << std::endl;
-        quit();
-    }
-
-    // Particle update ubo.
-    mParticleUpdateUbo = gl::Ubo::create(sizeof(mParticleParams), &mParticleParams, GL_DYNAMIC_DRAW);
-    mParticleUpdateUbo->bindBufferBase(0);
-    mUpdateProg->uniformBlock("ParticleParams", 0);
-
-    mUpdateProg->uniform("noiseTex3D", 0);
 }
 
-void NVidiaComputeParticlesApp::setupBuffers() {
-    mPos = gl::Ssbo::create(sizeof(vec4) * NUM_PARTICLES, nullptr, GL_STATIC_DRAW);
-    mVel = gl::Ssbo::create(sizeof(vec4) * NUM_PARTICLES, nullptr, GL_STATIC_DRAW);
-
-    std::vector<uint32_t> indices(NUM_PARTICLES * 6);
-    // the index buffer is a classic "two-tri quad" array.
-    // This may seem odd, given that the compute buffer contains a single
-    // vector for each particle.  However, the shader takes care of this
-    // by indexing the compute shader buffer with a /4.  The value mod 4
-    // is used to compute the offset from the vertex site, and each of the
-    // four indices in a given quad references the same center point
-    for (size_t i = 0, j = 0; i < NUM_PARTICLES; ++i) {
-        size_t index = i << 2u;
-        indices[j++] = index;
-        indices[j++] = index + 1;
-        indices[j++] = index + 2;
-        indices[j++] = index;
-        indices[j++] = index + 2;
-        indices[j++] = index + 3;
-    }
-
-    mIndicesVbo = gl::Vbo::create<uint32_t>(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
-}
 
 void NVidiaComputeParticlesApp::update() {
 
 //    detector.detect(cameraHandler.next_frame());
-    updateParticleSystem();
+particle_system_.update(getMousePos(), mCam, getWindowSize());
 }
 
 void NVidiaComputeParticlesApp::draw() {
@@ -216,7 +137,7 @@ void NVidiaComputeParticlesApp::draw() {
 
     if (mReset) {
         mReset = false;
-        resetParticleSystem(0.5f);
+        particle_system_.reset(0.5f);
     }
 
     gl::setMatrices(mCam);
@@ -232,134 +153,12 @@ void NVidiaComputeParticlesApp::draw() {
     gl::disable(GL_DEPTH_TEST);
     gl::disable(GL_CULL_FACE);
 
-    {
-        //ScopedBufferBase scopedPosBuffer( mPos, 1 );
-        gl::bindBufferBase(mPos->getTarget(), 1, mPos);
-        gl::ScopedBuffer scopedIndicex(mIndicesVbo);
-        gl::drawElements(GL_TRIANGLES, NUM_PARTICLES * 6, GL_UNSIGNED_INT, nullptr);
-    }
+    particle_system_.draw();
+
 
     gl::disableAlphaBlending();
 
     mParams->draw();
-}
-
-void NVidiaComputeParticlesApp::resetParticleSystem(float size) {
-    vec4 *pos = reinterpret_cast<vec4 *>( mPos->map(GL_WRITE_ONLY));
-    for (size_t i = 0; i < NUM_PARTICLES; ++i) {
-        pos[i] = vec4(sfrand() * size, sfrand() * size, sfrand() * size, 1.0f);
-    }
-    mPos->unmap();
-
-    vec4 *vel = reinterpret_cast<vec4 *>( mVel->map(GL_WRITE_ONLY));
-    for (size_t i = 0; i < NUM_PARTICLES; ++i) {
-        vel[i] = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    }
-    mVel->unmap();
-}
-
-// Unproject a coordinate back to to camera
-vec3 unproject(const vec3 &point, const CameraPersp &cam, const ivec2 &window_size) {
-    // Find the inverse Modelview-Projection-Matrix
-    mat4 mInvMVP = glm::inverse(cam.getProjectionMatrix() * cam.getViewMatrix());
-
-    // Transform to normalized coordinates in the range [-1, 1]
-    vec4 pointNormal;
-//    pointNormal.x = (point.x - mViewport.getX1()) / mViewport.getWidth() * 2.0f - 1.0f;
-//    pointNormal.y = (point.y - mViewport.getY1()) / mViewport.getHeight() * 2.0f;
-    pointNormal.x = (point.x) / window_size.x * 2.0f - 1.0f;
-    pointNormal.y = (point.y) / window_size.y * 2.0f;
-    pointNormal.z = 2.0f * point.z - 1.0f;
-    pointNormal.w = 1.0f;
-
-    // Find the object's coordinates
-    vec4 pointCoord = mInvMVP * pointNormal;
-    if (pointCoord.w != 0.0f) {
-        pointCoord.w = 1.0f / pointCoord.w;
-    }
-
-
-    // Return coordinate
-    return vec3(
-            pointCoord.x * pointCoord.w,
-            pointCoord.y * pointCoord.w,
-            pointCoord.z * pointCoord.w
-    );
-
-}
-
-vec3 screenToWorld(const ivec2 &point, const CameraPersp &cam, const ivec2 &window_size) {
-
-    // Find near and far plane intersections
-    vec3 point3f = vec3((float) point.x, window_size.y * 0.5f - (float) point.y, 0.0f);
-    vec3 nearPlane = unproject(point3f, cam, window_size);
-    vec3 farPlane = unproject(vec3(point3f.x, point3f.y, 1.0f), cam, window_size);
-
-    // Calculate X, Y and return point
-    float theta = (0.0f - nearPlane.z) / (farPlane.z - nearPlane.z);
-    return vec3(
-            nearPlane.x + theta * (farPlane.x - nearPlane.x),
-            nearPlane.y + theta * (farPlane.y - nearPlane.y),
-            0.0f
-    );
-
-}
-
-
-void NVidiaComputeParticlesApp::updateParticleSystem() {
-    mParticleParams.numParticles = NUM_PARTICLES;
-    // TODO
-    auto world_coordinate = screenToWorld(getMousePos(), mCam, getWindowSize());
-    mParticleParams.attractor = vec4(world_coordinate, 0.);
-    mParticleParams.attractor.w = 0.0001f;
-
-
-    // Invoke the compute shader to integrate the particles
-    gl::ScopedGlslProg prog(mUpdateProg);
-
-    mParticleUpdateUbo->bufferSubData(0, sizeof(mParticleParams), &mParticleParams);
-    gl::ScopedTextureBind scoped3dTex(mNoiseTex);
-
-
-    gl::bindBufferBase(mPos->getTarget(), 1, mPos);
-    gl::bindBufferBase(mPos->getTarget(), 2, mVel);
-
-    gl::dispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
-    // We need to block here on compute completion to ensure that the
-    // computation is done before we render
-    gl::memoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-}
-
-void NVidiaComputeParticlesApp::setupNoiseTexture3D() {
-    gl::Texture3d::Format tex3dFmt;
-    tex3dFmt.setWrapR(GL_REPEAT);
-    tex3dFmt.setWrapS(GL_REPEAT);
-    tex3dFmt.setWrapT(GL_REPEAT);
-    tex3dFmt.setMagFilter(GL_LINEAR);
-    tex3dFmt.setMinFilter(GL_LINEAR);
-    tex3dFmt.setDataType(GL_FLOAT);
-    tex3dFmt.setInternalFormat(GL_RGBA8_SNORM);
-
-    const int width = mNoiseSize;
-    const int height = mNoiseSize;
-    const int depth = mNoiseSize;
-
-    std::vector<float> data(width * height * depth * 4);
-    int i = 0;
-    for (int z = 0; z < depth; ++z) {
-        for (int y = 0; y < height; ++y) {
-            for (int x = 0; x < width; ++x) {
-                data[i++] = sfrand();
-                data[i++] = sfrand();
-                data[i++] = sfrand();
-                data[i++] = sfrand();
-            }
-        }
-    }
-
-    mNoiseTex = gl::Texture3d::create(mNoiseSize, mNoiseSize, mNoiseSize, tex3dFmt);
-    mNoiseTex->update(data.data(), GL_RGBA, tex3dFmt.getDataType(), 0, mNoiseTex->getWidth(),
-                      mNoiseTex->getHeight(), mNoiseTex->getDepth());
 }
 
 CINDER_APP(NVidiaComputeParticlesApp, RendererGl(),

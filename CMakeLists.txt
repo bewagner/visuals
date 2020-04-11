@@ -5,6 +5,7 @@ set(SOURCES
         #         src/main.cpp
         src/NVidiaComputeParticlesApp.cpp
         src/CameraHandler.cpp
+        src/ParticleSystem.cpp
         src/detector/Detector.cpp
         src/detector/FaceDetector.cpp
         src/detector/FaceKeypoints.cpp
