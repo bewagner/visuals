@@ -45,10 +45,8 @@
 #include "CameraHandler.h"
 
 using namespace ci;
-
 using namespace ci::app;
 
-#define LIGHT_RADIUS    1.5f // Must be at least 1
 
 float sfrand() {
     return randPosNegFloat(-1.0f, 1.0f);
@@ -92,11 +90,9 @@ public:
     void setupNoiseTexture3D();
 
     enum {
-        WORK_GROUP_SIZE = 128, NUM_PARTICLES = 1u << 12
+        WORK_GROUP_SIZE = 128, NUM_PARTICLES = 1u << 18u
     };
 
-    gl::VboRef mVBO;
-    gl::VboMeshRef teapot;
     gl::GlslProgRef mRenderProg;
     gl::GlslProgRef mUpdateProg;
     gl::SsboRef mPos;
@@ -111,7 +107,6 @@ public:
     int mNoiseSize;
     ParticleParams mParticleParams;
     float mSpriteSize;
-    bool mEnableAttractor;
 
     bool mReset;
     float mTime;
@@ -126,12 +121,11 @@ NVidiaComputeParticlesApp::NVidiaComputeParticlesApp()
           mNoiseSize(16),
           mParticleParams(mNoiseSize),
           mSpriteSize(0.015f),
-          mEnableAttractor(false),
+
 
           mReset(false),
           mTime(0.0f),
           mPrevElapsedSeconds(0.0f) {
-    mEnableAttractor = false;
 
     mReset = false;
     mTime = 0.0f;
@@ -148,8 +142,8 @@ NVidiaComputeParticlesApp::NVidiaComputeParticlesApp()
     mCam.lookAt(vec3(0.0f, 0.0f, -3.0f), vec3(0));
 
     mParams = params::InterfaceGl::create("Settings", toPixels(ivec2(225, 180)));
-    mParams->addSeparator();
-    mParams->addParam("Enable attractor", &mEnableAttractor);
+
+
     mParams->addSeparator();
     mParams->addParam("Sprite size", &(mSpriteSize)).min(0.0f).max(0.04f).step(0.01f);
     mParams->addParam("Noise strength", &(mParticleParams.noiseStrength)).min(0.0f).max(0.01f).step(0.001f);
@@ -198,7 +192,7 @@ void NVidiaComputeParticlesApp::setupBuffers() {
     // is used to compute the offset from the vertex site, and each of the
     // four indices in a given quad references the same center point
     for (size_t i = 0, j = 0; i < NUM_PARTICLES; ++i) {
-        size_t index = i << 2;
+        size_t index = i << 2u;
         indices[j++] = index;
         indices[j++] = index + 1;
         indices[j++] = index + 2;
@@ -314,24 +308,19 @@ vec3 screenToWorld(const ivec2 &point, const CameraPersp &cam, const ivec2 &wind
 
 void NVidiaComputeParticlesApp::updateParticleSystem() {
     mParticleParams.numParticles = NUM_PARTICLES;
-    if (mEnableAttractor) {
-        // move attractor
+    // TODO
+    auto world_coordinate = screenToWorld(getMousePos(), mCam, getWindowSize());
+    mParticleParams.attractor = vec4(world_coordinate, 0.);
+    mParticleParams.attractor.w = 0.0001f;
 
-        auto world_coordinate = screenToWorld(getMousePos(), mCam, getWindowSize());
-        mParticleParams.attractor = vec4(world_coordinate, 0.);
-        mParticleParams.attractor.w = 0.0001f;
-        std::cout << mParticleParams.attractor << std::endl;
-    } else {
-        mParticleParams.attractor.w = 0.0f;
-    }
+
     // Invoke the compute shader to integrate the particles
     gl::ScopedGlslProg prog(mUpdateProg);
 
     mParticleUpdateUbo->bufferSubData(0, sizeof(mParticleParams), &mParticleParams);
     gl::ScopedTextureBind scoped3dTex(mNoiseTex);
 
-    //ScopedBufferBase scopedPosBuffer( mPos, 1 );
-    //ScopedBufferBase scopedVelBuffer( mVel, 2 );
+
     gl::bindBufferBase(mPos->getTarget(), 1, mPos);
     gl::bindBufferBase(mPos->getTarget(), 2, mVel);
 
