@@ -26,6 +26,7 @@ public:
         float noiseStrength;
         float invNoiseSize;
     };
+
     Parameters parameters;
 
 
@@ -33,11 +34,20 @@ public:
 
     void reset(float size);
 
-    void update(const ci::ivec2 &mouse_position, const ci::CameraPersp &camera, const ci::ivec2 &window_size);
+    struct AppState {
+        const ci::ivec2 &mouse_position;
+        const ci::CameraPersp &camera;
+        const ci::ivec2 &window_size;
+        const bool attract_to_mouse;
+    };
+
+    void update(const AppState& app_state);
 
     void draw() const;
 
     void updateNoiseTexture3D();
+
+
 
 
 private:

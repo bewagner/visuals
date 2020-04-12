@@ -59,6 +59,8 @@ public:
 
     void setupShaders();
 
+    void keyDown(KeyEvent event) override;
+
     ParticleSystem particle_system_;
     gl::GlslProgRef mRenderProg;
 
@@ -67,6 +69,7 @@ public:
     CameraUi mCamUi;
 
     bool mReset;
+    bool mAttractToMouse;
     float mTime;
     float mPrevElapsedSeconds;
 
@@ -77,6 +80,7 @@ public:
 NVidiaComputeParticlesApp::NVidiaComputeParticlesApp()
         : mCam(getWindowWidth(), getWindowHeight(), 45.0f, 0.1f, 10.0f),
           mReset(false),
+          mAttractToMouse(false),
           mTime(0.0f),
           mPrevElapsedSeconds(0.0f) {
 
@@ -96,7 +100,7 @@ NVidiaComputeParticlesApp::NVidiaComputeParticlesApp()
             0.001f);
     mParams->addParam("Noise frequency", &(particle_system_.parameters.noiseFreq)).min(0.0f).max(20.0f).step(1.0f);
 
-    mParams->addParam("Damping", &(particle_system_.parameters.damping)).min(0.9f).max(0.99f).step(0.01f);
+    mParams->addParam("Damping", &(particle_system_.parameters.damping)).min(0.1f).max(0.99f).step(0.01f);
     mParams->addParam("Noise size", &(particle_system_.noise_size)).min(3).max(25).step(1).updateFn(
             [&]() {
                 particle_system_.updateNoiseTexture3D();
@@ -104,6 +108,7 @@ NVidiaComputeParticlesApp::NVidiaComputeParticlesApp()
             }
     );
     mParams->addSeparator();
+    mParams->addParam("Attract to mouse", &mAttractToMouse);
     mParams->addParam("Reset", &mReset);
 
     mCamUi = CameraUi(&mCam, getWindow());
@@ -124,7 +129,14 @@ void NVidiaComputeParticlesApp::setupShaders() {
 void NVidiaComputeParticlesApp::update() {
 
 //    detector.detect(cameraHandler.next_frame());
-    particle_system_.update(getMousePos(), mCam, getWindowSize());
+
+    ParticleSystem::AppState app_state{
+            getMousePos(),
+            mCam,
+            getWindowSize(),
+            mAttractToMouse
+    };
+    particle_system_.update(app_state);
 }
 
 void NVidiaComputeParticlesApp::draw() {
@@ -144,6 +156,30 @@ void NVidiaComputeParticlesApp::draw() {
     particle_system_.draw();
 
     mParams->draw();
+}
+
+void NVidiaComputeParticlesApp::keyDown(KeyEvent event) {
+    switch (event.getCode()) {
+        case KeyEvent::KEY_f:
+            setFullScreen(!isFullScreen());
+            break;
+        case KeyEvent::KEY_ESCAPE:
+            if (isFullScreen()) {
+                setFullScreen(false);
+            } else {
+                quit();
+            }
+            break;
+        case KeyEvent::KEY_s:
+            mParams->show(!mParams->isVisible());
+            break;
+        case KeyEvent::KEY_m:
+            mAttractToMouse = !mAttractToMouse;
+            break;
+        case KeyEvent::KEY_r:
+            mReset = !mReset;
+            break;
+    }
 }
 
 CINDER_APP(NVidiaComputeParticlesApp, RendererGl(),

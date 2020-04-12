@@ -154,23 +154,25 @@ ci::vec3 screenToWorld(const ci::ivec2 &point, const ci::CameraPersp &camera, co
 
 
 void
-ParticleSystem::update(const ci::ivec2 &mouse_position, const ci::CameraPersp &camera, const ci::ivec2 &window_size) {
+ParticleSystem::update(const AppState &app_state) {
     parameters.numParticles = NUM_PARTICLES;
 
     // Invoke the compute shader to integrate the particles
     ci::gl::ScopedGlslProg prog(update_program_);
 
-    // TODO
-    auto world_coordinate = ci::vec4(screenToWorld(mouse_position, camera, window_size), 0.0002f);
+
+
     // TODO Delete
-    eye_positions_ = std::vector<ci::vec4>(2);
+    eye_positions_.clear();
+    if (app_state.attract_to_mouse) {
+        eye_positions_.emplace_back(ci::vec4(app_state.mouse_position, 0., 0.));
+    }
 
     auto *pair_ubo = (ci::vec4 *) eye_positions_ubo_->mapWriteOnly();
     for (int i = 0; i < std::min(MAX_NUMBER_OF_EYE_PAIRS, eye_positions_.size()); ++i) {
-        auto current_coordinate = world_coordinate;
-        current_coordinate.x += i * 1.;
-        current_coordinate.y += i * 1.;
-        *pair_ubo = current_coordinate;
+        auto world_coordinate = ci::vec4(screenToWorld(eye_positions_[i], app_state.camera, app_state.window_size),
+                                         0.00007f);
+        *pair_ubo = world_coordinate;
         pair_ubo++;
     }
     eye_positions_ubo_->unmap();

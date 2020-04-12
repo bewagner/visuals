@@ -97,12 +97,41 @@ vec3 fBm3f(vec3 p, int octaves, float lacunarity, float gain)
 vec3 attract(vec3 p, vec3 p2)
 {
     const float softeningSquared = 0.01;
-    vec3 v = p2 - p;
+    const vec3 v = p2 - p;
     float r2 = dot(v, v);
     r2 += softeningSquared;
-    float invDist = 1.0f / sqrt(r2);
-    float invDistCubed = invDist * invDist * invDist;
+    const float invDist = 1.0f / sqrt(r2);
+    const float invDistCubed = invDist * invDist * invDist;
     return v * invDistCubed;
+}
+
+vec3 attractionToEyes(vec3 p) {
+    vec3 eyeAttraction = vec3(0.);
+    if (numberOfEyePairs == 0){
+        return eyeAttraction;
+    }
+
+    for (uint j = 0; j < numberOfEyePairs; ++j) {
+        const vec4 current_attractor = eye_positions[j];
+        eyeAttraction += attract(p, current_attractor.xyz) * current_attractor.w;
+    }
+    eyeAttraction /= numberOfEyePairs;
+    return eyeAttraction;
+}
+
+vec3 attractionToCameraFocusPoint(vec3 p)  {
+    const vec3 origin = vec3(0.f);
+    const vec3 vectorPointingFromParticleToOrigin = origin-p;
+    const float boundingBoxSize = 3.;
+    const float boundingBoxPullBackMultiplicator = 0.0005;
+
+    if (abs(vectorPointingFromParticleToOrigin.x) > boundingBoxSize
+    || abs(vectorPointingFromParticleToOrigin.y) > boundingBoxSize
+    || abs(vectorPointingFromParticleToOrigin.z) > boundingBoxSize) {
+        return vectorPointingFromParticleToOrigin * boundingBoxPullBackMultiplicator;
+    }
+
+    return vec3(0.);
 }
 
 // Compute shader to update particles
@@ -122,13 +151,11 @@ void main()
 
     v += fBm3f(p * noiseFreq, 4, 2.0, 0.5) * noiseStrength;
 
-    vec3 eyeAttraction = vec3(0.);
-    for (uint j = 0; j < numberOfEyePairs; ++j) {
-        vec4 current_attractor = eye_positions[j];
-        eyeAttraction += attract(p, current_attractor.xyz) * current_attractor.w;
-    }
-    eyeAttraction /= numberOfEyePairs;
-    v += eyeAttraction;
+    // Attract particle to eye positions
+    v += attractionToEyes(p);
+
+    // Make the particle stay in a box centered around the point the camera is looking at
+    v += attractionToCameraFocusPoint(p);
 
     // Integrate
     p += v;
