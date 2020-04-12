@@ -1,19 +1,32 @@
 //
 // Created by benjamin on 11.04.20.
 //
-
 #include "ParticleSystem.h"
 #include "cinder/Rand.h"
 #include "cinder/app/App.h"
 
-const int NUM_PARTICLES = 1u << 18u;
-const int WORK_GROUP_SIZE = 128;
 
+// Note: When changing anything below, also change the values in the compute shader
+const int ParticleSystem::NUM_PARTICLES = 1u << 18u;
+const int ParticleSystem::WORK_GROUP_SIZE = 128;
+const size_t ParticleSystem::MAX_NUMBER_OF_EYE_PAIRS = 10;
+
+struct BufferIndices {
+    // Note: When changing anything here, also change the values in the compute shader
+    static const int PARTICLE_UPDATE_UBO = 0;
+    static const int POSITION_SSBO = 1;
+    static const int VELOCITY_SSBO = 2;
+    static const int EYE_POSITION_UBO = 3;
+};
+
+
+/// Get a random float in the range [-1, 1]
+/// \return Random float in the range [-1, 1]
 float sfrand() {
     return ci::randPosNegFloat(-1.0f, 1.0f);
 }
 
-void ParticleSystem::setupNoiseTexture3D() {
+void ParticleSystem::updateNoiseTexture3D() {
     ci::gl::Texture3d::Format tex3dFmt;
     tex3dFmt.setWrapR(GL_REPEAT);
     tex3dFmt.setWrapS(GL_REPEAT);
@@ -23,9 +36,9 @@ void ParticleSystem::setupNoiseTexture3D() {
     tex3dFmt.setDataType(GL_FLOAT);
     tex3dFmt.setInternalFormat(GL_RGBA8_SNORM);
 
-    const int width = noise_size_;
-    const int height = noise_size_;
-    const int depth = noise_size_;
+    const int width = noise_size;
+    const int height = noise_size;
+    const int depth = noise_size;
 
     std::vector<float> data(width * height * depth * 4);
     int i = 0;
@@ -40,7 +53,7 @@ void ParticleSystem::setupNoiseTexture3D() {
         }
     }
 
-    noise_texture_ = ci::gl::Texture3d::create(noise_size_, noise_size_, noise_size_, tex3dFmt);
+    noise_texture_ = ci::gl::Texture3d::create(noise_size, noise_size, noise_size, tex3dFmt);
     noise_texture_->update(data.data(), GL_RGBA, tex3dFmt.getDataType(), 0, noise_texture_->getWidth(),
                            noise_texture_->getHeight(), noise_texture_->getDepth());
 }
@@ -68,11 +81,11 @@ void ParticleSystem::setupBuffers() {
     indices_vbo_ = ci::gl::Vbo::create<uint32_t>(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
 
     particle_update_ubo_ = ci::gl::Ubo::create(sizeof(parameters), &parameters, GL_DYNAMIC_DRAW);
-    particle_update_ubo_->bindBufferBase(0);
+    particle_update_ubo_->bindBufferBase(BufferIndices::PARTICLE_UPDATE_UBO);
 
-    eye_positions_ubo_ = ci::gl::Ubo::create(sizeof(ci::vec4) * max_number_of_eye_pairs_, eye_positions_.data(),
+    eye_positions_ubo_ = ci::gl::Ubo::create(sizeof(ci::vec4) * MAX_NUMBER_OF_EYE_PAIRS, eye_positions_.data(),
                                              GL_DYNAMIC_DRAW);
-    eye_positions_ubo_->bindBufferBase(3);
+    eye_positions_ubo_->bindBufferBase(BufferIndices::EYE_POSITION_UBO);
 }
 
 void ParticleSystem::reset(float size) {
@@ -90,10 +103,14 @@ void ParticleSystem::reset(float size) {
 }
 
 
-// Unproject a coordinate back to to camera
-ci::vec3 unproject(const ci::vec3 &point, const ci::CameraPersp &cam, const ci::ivec2 &window_size) {
+/// Unproject a point back to the camera view
+/// \param point Point to unproject
+/// \param camera Camera to use
+/// \param window_size Current app window size
+/// \return Unprojected point
+ci::vec3 unproject(const ci::vec3 &point, const ci::CameraPersp &camera, const ci::ivec2 &window_size) {
     // Find the inverse Modelview-Projection-Matrix
-    ci::mat4 mInvMVP = glm::inverse(cam.getProjectionMatrix() * cam.getViewMatrix());
+    ci::mat4 mInvMVP = glm::inverse(camera.getProjectionMatrix() * camera.getViewMatrix());
 
     // Transform to normalized coordinates in the range [-1, 1]
     ci::vec4 pointNormal;
@@ -115,11 +132,16 @@ ci::vec3 unproject(const ci::vec3 &point, const ci::CameraPersp &cam, const ci::
     );
 }
 
-ci::vec3 screenToWorld(const ci::ivec2 &point, const ci::CameraPersp &cam, const ci::ivec2 &window_size) {
+/// Transform a point from screen to world coordinates
+/// \param point Point to transform
+/// \param camera Camera to use
+/// \param window_size Current app window size
+/// \return Transformed point
+ci::vec3 screenToWorld(const ci::ivec2 &point, const ci::CameraPersp &camera, const ci::ivec2 &window_size) {
     // Find near and far plane intersections
     ci::vec3 point3f = ci::vec3((float) point.x, window_size.y * 0.5f - (float) point.y, 0.0f);
-    ci::vec3 nearPlane = unproject(point3f, cam, window_size);
-    ci::vec3 farPlane = unproject(ci::vec3(point3f.x, point3f.y, 1.0f), cam, window_size);
+    ci::vec3 nearPlane = unproject(point3f, camera, window_size);
+    ci::vec3 farPlane = unproject(ci::vec3(point3f.x, point3f.y, 1.0f), camera, window_size);
 
     // Calculate X, Y and return point
     float theta = (0.0f - nearPlane.z) / (farPlane.z - nearPlane.z);
@@ -131,32 +153,36 @@ ci::vec3 screenToWorld(const ci::ivec2 &point, const ci::CameraPersp &cam, const
 }
 
 
-void ParticleSystem::update(const ci::ivec2 &mouse_position, const ci::CameraPersp &cam, const ci::ivec2 &window_size) {
+void
+ParticleSystem::update(const ci::ivec2 &mouse_position, const ci::CameraPersp &camera, const ci::ivec2 &window_size) {
     parameters.numParticles = NUM_PARTICLES;
 
     // Invoke the compute shader to integrate the particles
     ci::gl::ScopedGlslProg prog(update_program_);
 
     // TODO
-    auto world_coordinate = ci::vec4(screenToWorld(mouse_position, cam, window_size), 0.0002f);
+    auto world_coordinate = ci::vec4(screenToWorld(mouse_position, camera, window_size), 0.0002f);
+    // TODO Delete
+    eye_positions_ = std::vector<ci::vec4>(2);
 
     auto *pair_ubo = (ci::vec4 *) eye_positions_ubo_->mapWriteOnly();
-    for (int i = 0; i < max_number_of_eye_pairs_; ++i) {
+    for (int i = 0; i < std::min(MAX_NUMBER_OF_EYE_PAIRS, eye_positions_.size()); ++i) {
         auto current_coordinate = world_coordinate;
-        current_coordinate.x += i * 0.1;
-        current_coordinate.y += i * 0.1;
+        current_coordinate.x += i * 1.;
+        current_coordinate.y += i * 1.;
         *pair_ubo = current_coordinate;
         pair_ubo++;
     }
     eye_positions_ubo_->unmap();
+    update_program_->uniform("numberOfEyePairs", static_cast<unsigned int>(eye_positions_.size()));
 
 
     particle_update_ubo_->bufferSubData(0, sizeof(parameters), &parameters);
     ci::gl::ScopedTextureBind scoped3dTex(noise_texture_);
 
 
-    ci::gl::bindBufferBase(position_ssbo_->getTarget(), 1, position_ssbo_);
-    ci::gl::bindBufferBase(position_ssbo_->getTarget(), 2, velocity_ssbo_);
+    ci::gl::bindBufferBase(position_ssbo_->getTarget(), BufferIndices::POSITION_SSBO, position_ssbo_);
+    ci::gl::bindBufferBase(velocity_ssbo_->getTarget(), BufferIndices::VELOCITY_SSBO, velocity_ssbo_);
 
     ci::gl::dispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
     // We need to block here on compute completion to ensure that the
@@ -169,8 +195,8 @@ void ParticleSystem::setupShaders() {
             ci::gl::GlslProg::Format().compute(ci::app::loadAsset("particles.comp")));
     // Particle update ubo.
 
-    update_program_->uniformBlock("ParticleParams", 0);
-    update_program_->uniformBlock("EyePositions", 3);
+    update_program_->uniformBlock("ParticleParams", BufferIndices::PARTICLE_UPDATE_UBO);
+    update_program_->uniformBlock("EyePositions", BufferIndices::EYE_POSITION_UBO);
     update_program_->uniform("noiseTex3D", 0);
 }
 
@@ -181,16 +207,16 @@ void ParticleSystem::draw() const {
 
     ci::gl::disable(GL_DEPTH_TEST);
     ci::gl::disable(GL_CULL_FACE);
-    ci::gl::bindBufferBase(position_ssbo_->getTarget(), 1, position_ssbo_);
+    ci::gl::bindBufferBase(position_ssbo_->getTarget(), BufferIndices::POSITION_SSBO, position_ssbo_);
     ci::gl::ScopedBuffer scopedIndicex(indices_vbo_);
     ci::gl::drawElements(GL_TRIANGLES, NUM_PARTICLES * 6, GL_UNSIGNED_INT, nullptr);
 
     ci::gl::disableAlphaBlending();
 }
 
-ParticleSystem::ParticleSystem() :
-        parameters(16.), noise_size_(16) {
-    setupNoiseTexture3D();
+ParticleSystem::ParticleSystem() : noise_size(16),
+                                   parameters(noise_size) {
+    updateNoiseTexture3D();
     setupBuffers();
     setupShaders();
 }

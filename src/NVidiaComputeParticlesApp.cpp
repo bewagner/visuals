@@ -66,7 +66,6 @@ public:
     CameraPersp mCam;
     CameraUi mCamUi;
 
-
     bool mReset;
     float mTime;
     float mPrevElapsedSeconds;
@@ -96,6 +95,14 @@ NVidiaComputeParticlesApp::NVidiaComputeParticlesApp()
     mParams->addParam("Noise strength", &(particle_system_.parameters.noiseStrength)).min(0.0f).max(0.01f).step(
             0.001f);
     mParams->addParam("Noise frequency", &(particle_system_.parameters.noiseFreq)).min(0.0f).max(20.0f).step(1.0f);
+
+    mParams->addParam("Damping", &(particle_system_.parameters.damping)).min(0.9f).max(0.99f).step(0.01f);
+    mParams->addParam("Noise size", &(particle_system_.noise_size)).min(3).max(25).step(1).updateFn(
+            [&]() {
+                particle_system_.updateNoiseTexture3D();
+                particle_system_.parameters.invNoiseSize = 1.f / static_cast<float>(particle_system_.noise_size);
+            }
+    );
     mParams->addSeparator();
     mParams->addParam("Reset", &mReset);
 
@@ -140,8 +147,8 @@ void NVidiaComputeParticlesApp::draw() {
 }
 
 CINDER_APP(NVidiaComputeParticlesApp, RendererGl(),
-[&](
-App::Settings *settings
-) {
-settings->setWindowSize(1280, 720);
-})
+           [&](
+                   App::Settings *settings
+           ) {
+               settings->setWindowSize(1280, 720);
+           })

@@ -10,20 +10,22 @@
 
 class ParticleSystem {
 public:
+    int noise_size;
+
     struct Parameters {
-        explicit Parameters(float noiseSize)
-                : damping(0.95f),
+        explicit Parameters(float noise_size)
+                : damping(0.95),
                   noiseFreq(10.0f),
                   noiseStrength(0.001f),
-                  invNoiseSize(1.0f / noiseSize) {
+                  invNoiseSize(1.0f / noise_size) {
         }
+
         float numParticles{};
         float damping;
         float noiseFreq;
         float noiseStrength;
         float invNoiseSize;
     };
-
     Parameters parameters;
 
 
@@ -31,13 +33,15 @@ public:
 
     void reset(float size);
 
-    void update(const ci::ivec2 &mouse_position, const ci::CameraPersp &cam, const ci::ivec2 &window_size);
+    void update(const ci::ivec2 &mouse_position, const ci::CameraPersp &camera, const ci::ivec2 &window_size);
 
     void draw() const;
 
+    void updateNoiseTexture3D();
+
+
 private:
 
-    const int noise_size_;
     ci::gl::SsboRef position_ssbo_;
     ci::gl::SsboRef velocity_ssbo_;
     ci::gl::Texture3dRef noise_texture_;
@@ -45,17 +49,17 @@ private:
     ci::gl::UboRef particle_update_ubo_;
     ci::gl::GlslProgRef update_program_;
 
-    static const int max_number_of_eye_pairs_ = 5;
-    std::array<ci::vec4, max_number_of_eye_pairs_> eye_positions_;
-    ci::gl::UboRef eye_positions_ubo_;
+    static const size_t MAX_NUMBER_OF_EYE_PAIRS;
+    static const int NUM_PARTICLES;
+    static const int WORK_GROUP_SIZE;
 
-    void setupNoiseTexture3D();
+
+    std::vector<ci::vec4> eye_positions_;
+    ci::gl::UboRef eye_positions_ubo_;
 
     void setupShaders();
 
     void setupBuffers();
-
-
 };
 
 
