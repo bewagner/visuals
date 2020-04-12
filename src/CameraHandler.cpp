@@ -34,6 +34,9 @@ void CameraHandler::show_openCV_window() {
 
     if (cv::waitKey(1) == 27) {
         cv::destroyAllWindows();
-        video_capture_.release();
     }
+}
+
+CameraHandler::~CameraHandler() {
+    video_capture_.release();
 }

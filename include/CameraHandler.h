@@ -11,12 +11,15 @@ class CameraHandler {
 public:
     explicit CameraHandler();
 
+    ~CameraHandler();
+
     const cv::Mat &next_frame();
 
     template<typename T>
-    void show_openCV_window(const std::vector<T>& objects);
+    void show_openCV_window(const std::vector<T> &objects);
 
     void show_openCV_window();
+
 
 private:
     const int max_number_of_cameras_to_try_ = 10;
