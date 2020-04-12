@@ -7,7 +7,6 @@
 
 #include "cinder/gl/gl.h"
 
-
 class ParticleSystem {
 public:
     int noise_size;
@@ -28,7 +27,6 @@ public:
     };
 
     Parameters parameters;
-
 
     explicit ParticleSystem();
 
@@ -63,7 +61,6 @@ private:
     static const size_t MAX_NUMBER_OF_EYE_PAIRS;
     static const int NUM_PARTICLES;
     static const int WORK_GROUP_SIZE;
-
 
     std::vector<ci::vec4> eye_positions_;
     ci::gl::UboRef eye_positions_ubo_;

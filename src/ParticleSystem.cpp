@@ -171,7 +171,7 @@ ParticleSystem::update(const AppState &app_state) {
     auto *pair_ubo = (ci::vec4 *) eye_positions_ubo_->mapWriteOnly();
     for (int i = 0; i < std::min(MAX_NUMBER_OF_EYE_PAIRS, eye_positions_.size()); ++i) {
         auto world_coordinate = ci::vec4(screenToWorld(eye_positions_[i], app_state.camera, app_state.window_size),
-                                         0.00007f);
+                                         0.0007f);
         *pair_ubo = world_coordinate;
         pair_ubo++;
     }
