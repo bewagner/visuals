@@ -162,8 +162,8 @@ ParticleSystem::update(const AppState &app_state) {
 
 
 
-    // TODO Delete
-    eye_positions_.clear();
+    // TODO Delete eye_positions variable
+    eye_positions_ = app_state.eye_pairs;
     if (app_state.attract_to_mouse) {
         eye_positions_.emplace_back(ci::vec4(app_state.mouse_position, 0., 0.));
     }

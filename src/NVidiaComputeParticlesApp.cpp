@@ -128,13 +128,21 @@ void NVidiaComputeParticlesApp::setupShaders() {
 
 void NVidiaComputeParticlesApp::update() {
 
-//    detector.detect(cameraHandler.next_frame());
+    // TODO Make this more beautiful
+    auto eye_pairs = detector.detect(cameraHandler.next_frame());
+    std::vector<ci::vec4> eye_pairs_as_cinder_vectors;
+    for (const auto &eye_pair : eye_pairs) {
+        auto eye_pair_as_cinder_vector = eye_pair.to_cinder_vectors();
+        eye_pairs_as_cinder_vectors.insert(eye_pairs_as_cinder_vectors.end(), eye_pair_as_cinder_vector.begin(),
+                                           eye_pair_as_cinder_vector.end());
+    }
 
     ParticleSystem::AppState app_state{
             getMousePos(),
             mCam,
             getWindowSize(),
-            mAttractToMouse
+            mAttractToMouse,
+            eye_pairs_as_cinder_vectors
     };
     particle_system_.update(app_state);
 }

@@ -39,6 +39,7 @@ public:
         const ci::CameraPersp &camera;
         const ci::ivec2 &window_size;
         const bool attract_to_mouse;
+        const std::vector<ci::vec4> & eye_pairs;
     };
 
     void update(const AppState& app_state);
