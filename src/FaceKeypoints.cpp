@@ -2,7 +2,7 @@
 // Created by benjamin on 27.03.20.
 //
 
-#include <detector/FaceKeypoints.h>
+#include <FaceKeypoints.h>
 #include <utility>
 #include <exception>
 #include <numeric>

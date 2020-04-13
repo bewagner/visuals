@@ -7,10 +7,10 @@
 
 #include <vector>
 #include <opencv4/opencv2/opencv.hpp>
-#include "detector/FaceDetector.h"
-#include "detector/KeypointDetector.h"
-#include "detector/FaceKeypoints.h"
-#include "detector/PairOfEyes.h"
+#include "FaceDetector.h"
+#include "KeypointDetector.h"
+#include "FaceKeypoints.h"
+#include "PairOfEyes.h"
 
 class Detector {
 public:

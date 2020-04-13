@@ -2,9 +2,9 @@
 // Created by benjamin on 27.03.20.
 //
 
-#include <detector/KeypointDetector.h>
+#include <KeypointDetector.h>
 
-#include "detector/KeypointDetector.h"
+#include "KeypointDetector.h"
 #include <opencv4/opencv2/opencv.hpp>
 
 KeypointDetector::KeypointDetector() {

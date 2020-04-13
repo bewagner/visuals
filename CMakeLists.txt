@@ -3,11 +3,11 @@ project(OpenCVFaceTrackerCPP LANGUAGES CXX)
 
 set(SOURCES
         src/main.cpp
-        src/detector/FaceDetector.cpp
-        src/detector/KeypointDetector.cpp
-        src/detector/FaceKeypoints.cpp
-        src/detector/Detector.cpp
-        include/detector/PairOfEyes.h
+        src/FaceDetector.cpp
+        src/KeypointDetector.cpp
+        src/FaceKeypoints.cpp
+        src/Detector.cpp
+        include/PairOfEyes.h
         )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

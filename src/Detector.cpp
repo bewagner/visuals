@@ -2,7 +2,7 @@
 // Created by benjamin on 01.04.20.
 //
 
-#include "detector/Detector.h"
+#include "Detector.h"
 
 
 std::vector<PairOfEyes> Detector::detect(const cv::Mat &frame) {
