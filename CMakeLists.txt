@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(visuals LANGUAGES CXX)
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+project(OpenCVFaceTrackerCPP LANGUAGES CXX)
 
 set(SOURCES
         src/main.cpp
@@ -10,23 +7,11 @@ set(SOURCES
         src/detector/KeypointDetector.cpp
         src/detector/FaceKeypoints.cpp
         src/detector/Detector.cpp
-        "${PROJECT_SOURCE_DIR}/assets/res10_300x300_ssd_iter_140000_fp16.caffemodel"
         include/detector/PairOfEyes.h
         )
 
-# Cinder setup
-#add_subdirectory(Cinder)
-#get_filename_component(CINDER_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Cinder" ABSOLUTE)
-#
-#include("${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake")
-#ci_make_app(
-#        APP_NAME "${PROJECT_NAME}"
-#        CINDER_PATH ${CINDER_PATH}
-#        SOURCES ${SOURCES}
-#        INCLUDES include/
-#)
-
 add_executable(${PROJECT_NAME} ${SOURCES})
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_14)
 
 # OpenCV setup
 find_package(OpenCV REQUIRED)

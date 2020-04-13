@@ -13,6 +13,7 @@ class FaceDetector {
 public:
     explicit FaceDetector();
 
+
 /// Detect faces in an image frame
 /// \param frame Image to detect faces in
 /// \return Vector of detected faces
