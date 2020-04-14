@@ -1,12 +1,12 @@
-# Building an eye tracker with openCV in C++
+# Building a face detector with openCV in C++
 
-Here you find the code for my [blog post](http://bewagner.github.io/programming/2020/04/12/building-a-face-detector-with-opencv-in-cpp/) on building an eye tracker with openCV. 
+Here you find the code for my [blog post](http://bewagner.github.io/programming/2020/04/12/building-a-face-detector-with-opencv-in-cpp/) on building a face detector with OpenCV. 
 
 <p align="center">
   <img width="460" height="300" src="/images/detectingFaces.gif">
 </p>
 
-## Installing openCV
+## Installing OpenCV
 
 Run 
 ```shell script 
