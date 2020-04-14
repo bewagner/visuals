@@ -1,4 +1,4 @@
-# Building a face detector with openCV in C++
+# Building a face detector with OpenCV in C++
 
 Here you find the code for my [blog post](http://bewagner.github.io/programming/2020/04/12/building-a-face-detector-with-opencv-in-cpp/) on building a face detector with OpenCV. 
 
