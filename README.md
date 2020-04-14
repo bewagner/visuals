@@ -2,7 +2,9 @@
 
 Here you find the code for my [blog post](http://bewagner.github.io/programming/2020/04/12/building-a-face-detector-with-opencv-in-cpp/) on building an eye tracker with openCV. 
 
-![Face detector](/images/detectingFaces.gif)
+<p align="center">
+  <img width="460" height="300" src="/images/detectingFaces.gif">
+</p>
 
 ## Installing openCV
 
