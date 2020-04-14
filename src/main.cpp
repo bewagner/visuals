@@ -22,7 +22,8 @@ int main(int argc, char **argv) {
 
 
         imshow("Image", frame);
-        if (cv::waitKey(10) == 27) { // Stop showing the image when you press 'Esc'
+        int esc_key = 27;
+        if (cv::waitKey(10) == esc_key) {
             break;
         }
     }
