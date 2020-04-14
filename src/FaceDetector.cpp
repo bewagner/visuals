@@ -37,7 +37,6 @@ std::vector<cv::Rect> FaceDetector::detect_face_rectangles(const cv::Mat &frame)
         if (confidence < confidence_threshold_) {
             continue;
         }
-
         int x_left_bottom = static_cast<int>(detection_matrix.at<float>(i, 3) * frame.cols);
         int y_left_bottom = static_cast<int>(detection_matrix.at<float>(i, 4) * frame.rows);
         int x_right_top = static_cast<int>(detection_matrix.at<float>(i, 5) * frame.cols);
