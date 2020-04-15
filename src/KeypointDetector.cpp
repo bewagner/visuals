@@ -1,9 +1,3 @@
-//
-// Created by benjamin on 27.03.20.
-//
-
-#include <KeypointDetector.h>
-
 #include "KeypointDetector.h"
 #include <opencv4/opencv2/opencv.hpp>
 
@@ -28,11 +22,11 @@ KeypointDetector::detect_keypoints(const std::vector<cv::Rect> &face_rectangles,
     return faces;
 }
 
-void KeypointDetector::draw_detected_keypoints(const std::vector<FaceKeypoints> &faces,
-                                               const cv::Mat &frame) const {
-    cv::Scalar red(0, 0, 255);
-    for (const auto &face : faces) {
-        cv::circle(frame, face.left_eye_center(), 8, red, -1);
-        cv::circle(frame, face.right_eye_center(), 8, red, -1);
-    }
-}
+//void KeypointDetector::draw_detected_keypoints(const std::vector<FaceKeypoints> &faces,
+//                                               const cv::Mat &frame) const {
+//    cv::Scalar red(0, 0, 255);
+//    for (const auto &face : faces) {
+//        cv::circle(frame, face.left_eye_center(), 8, red, -1);
+//        cv::circle(frame, face.right_eye_center(), 8, red, -1);
+//    }
+//}

@@ -1,7 +1,3 @@
-//
-// Created by benjamin on 27.03.20.
-//
-
 #ifndef VISUALS_FACEKEYPOINTS_H
 #define VISUALS_FACEKEYPOINTS_H
 
@@ -10,23 +6,15 @@
 
 struct FaceKeypoints {
 
-    explicit FaceKeypoints(std::vector<cv::Point2f> all_points);
+    explicit FaceKeypoints(std::vector<cv::Point2f> face_keypoints);
 
     cv::Point2f left_eye_center() const;
 
     cv::Point2f right_eye_center() const;
 
-    cv::Point2f mouth_center() const;
-
-
-    std::vector<cv::Point2f> jawline() const;
-    std::vector<cv::Point2f> right_eyebrow() const;
-    std::vector<cv::Point2f> left_eyebrow() const;
-    std::vector<cv::Point2f> nose() const;
     std::vector<cv::Point2f> right_eye() const;
-    std::vector<cv::Point2f> left_eye() const;
-    std::vector<cv::Point2f> mouth() const;
 
+    std::vector<cv::Point2f> left_eye() const;
 
     std::vector<cv::Point2f> keypoints;
 };

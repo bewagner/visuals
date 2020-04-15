@@ -1,7 +1,3 @@
-//
-// Created by benjamin on 27.03.20.
-//
-
 #ifndef VISUALS_KEYPOINTDETECTOR_H
 #define VISUALS_KEYPOINTDETECTOR_H
 
@@ -13,10 +9,8 @@ class KeypointDetector {
 public:
     explicit KeypointDetector();
 
-    std::vector<FaceKeypoints> detect_keypoints(const std::vector<cv::Rect> &face_rectangles, const cv::Mat &image) const;
-
-    void draw_detected_keypoints(const std::vector<FaceKeypoints> &faces,
-                                 const cv::Mat &frame) const;
+    std::vector<FaceKeypoints>
+    detect_keypoints(const std::vector<cv::Rect> &face_rectangles, const cv::Mat &image) const;
 
 private:
     cv::Ptr<cv::face::Facemark> facemark_;

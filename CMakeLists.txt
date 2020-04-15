@@ -6,8 +6,6 @@ set(SOURCES
         src/FaceDetector.cpp
         src/KeypointDetector.cpp
         src/FaceKeypoints.cpp
-        src/Detector.cpp
-        include/PairOfEyes.h
         )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
