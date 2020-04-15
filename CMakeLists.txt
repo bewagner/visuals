@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(OpenCVFaceTrackerCPP LANGUAGES CXX)
+project(OpenCVEyeDetectorCPP LANGUAGES CXX)
 
 set(SOURCES
         src/main.cpp
