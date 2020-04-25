@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.5)
 project(visuals LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+
 set(SOURCES
         src/main.cpp
         )
@@ -26,7 +31,7 @@ include(ExternalProject)
 
 # Cinder
 set(CINDER_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/Cinder)
-ExternalProject_Add(cinder
+ExternalProject_Add(Cinder
         GIT_REPOSITORY https://github.com/cinder/Cinder
         GIT_TAG v0.9.2
         SOURCE_DIR cinder
@@ -34,36 +39,37 @@ ExternalProject_Add(cinder
         BUILD_COMMAND ""
         INSTALL_COMMAND ""
         )
+add_dependencies(${PROJECT_NAME} Cinder)
+#add_subdirectory(${CINDER_INSTALL_LOCATION})
 
-add_dependencies(${PROJECT_NAME} cinder)
 
 # OpenCV
 set(OPENCV_CONTRIB_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/opencv_contrib)
 ExternalProject_Add(opencv_contrib
         GIT_REPOSITORY https://github.com/opencv/opencv_contrib
-        GIT_TAG e6f32c6a69043456a806a4e802ee3ce7b7059c93 # 4.3.0
+        GIT_TAG 4.3.0
         SOURCE_DIR opencv_contrib
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ""
         )
-
 set(OPENCV_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/opencv)
 ExternalProject_Add(opencv
         GIT_REPOSITORY https://github.com/opencv/opencv
-        GIT_TAG 01b2c5a77ca6dbef3baef24ebc0a5984579231d9 # 4.3.0
+        GIT_TAG 4.3.0
         SOURCE_DIR opencv
         BINARY_DIR opencv-build
         CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${OPENCV_INSTALL_LOCATION} -DBUILD_LIST="core,imgproc,highgui,dnn" -DOPENCV_EXTRA_MODULES_PATH=${CMAKE_BINARY_DIR}/opencv_contrib/modules
         )
 add_dependencies(opencv opencv_contrib)
-target_include_directories(${PROJECT_NAME} PRIVATE ${OPENCV_INSTALL_LOCATION}/include/opencv4)
-link_directories(${OPENCV_INSTALL_LOCATION}/lib) # target_link_directories would be better here, but the cmake version on TravisCI does not support this yet
-target_link_libraries(${PROJECT_NAME} opencv_core)
 add_dependencies(${PROJECT_NAME} opencv)
 
-# Set C++ standard
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_11)
+set(OpenCV_DIR ${CMAKE_BINARY_DIR}/opencv-build)
+find_package(OpenCV REQUIRED)
+target_include_directories(${PROJECT_NAME} PRIVATE ${OpenCV_DIRS})
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
+
+
 
 # Introduce preprocessor variables to keep paths of asset files
 set(FACE_DETECTION_CONFIGURATION "${PROJECT_SOURCE_DIR}/assets/deploy.prototxt")
