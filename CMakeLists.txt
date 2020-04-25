@@ -17,10 +17,9 @@ set(SOURCES
 #        INCLUDES include/
 #)
 
-# Set C++ standard
 
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_14)
+
 
 
 
@@ -48,32 +47,18 @@ ExternalProject_Add(opencv
         )
 add_dependencies(opencv opencv_contrib)
 target_include_directories(${PROJECT_NAME} PRIVATE ${OPENCV_INSTALL_LOCATION}/include/opencv4)
-link_directories("${OPENCV_INSTALL_LOCATION}/lib") # target_link_directories would be better here, but the cmake version on TravisCI does not support this yet
+link_directories(${OPENCV_INSTALL_LOCATION}/lib) # target_link_directories would be better here, but the cmake version on TravisCI does not support this yet
 target_link_libraries(${PROJECT_NAME} opencv_core)
 add_dependencies(${PROJECT_NAME} opencv)
 
+# Set C++ standard
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_14)
 
+# Introduce preprocessor variables to keep paths of asset files
+set(FACE_DETECTION_CONFIGURATION "${PROJECT_SOURCE_DIR}/assets/deploy.prototxt")
+set(FACE_DETECTION_WEIGHTS "${PROJECT_SOURCE_DIR}/assets/res10_300x300_ssd_iter_140000_fp16.caffemodel")
+set(KEYPOINT_DETECTION_MODEL "${PROJECT_SOURCE_DIR}/assets/lbfmodel.yaml")
 
-
-
-#find_package(OpenCV CONFIG REQUIRED
-#        NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH NO_CMAKE_SYSTEM_PACKAGE_REGISTRY
-#        PATHS ${PROJECT_BINARY_DIR})
-#
-#message("----------------------")
-#message("OpenCV_DIR ${OpenCV_DIR}")
-#message("OpenCV_INCLUDE_DIRS ${OpenCV_INCLUDE_DIRS}")
-#message("OpenCV_LIBS ${OpenCV_LIBS}")
-#message("----------------------")
-
-#target_link_libraries(${PROJECT_NAME} "$<BUILD_INTERFACE:${OpenCV_LIBS}>")
-#target_include_directories(${PROJECT_NAME} PRIVATE "$<BUILD_INTERFACE:${OpenCV_INCLUDE_DIRS}>")
-
-## Introduce preprocessor variables to keep paths of asset files
-#set(FACE_DETECTION_CONFIGURATION "${PROJECT_SOURCE_DIR}/assets/deploy.prototxt")
-#set(FACE_DETECTION_WEIGHTS "${PROJECT_SOURCE_DIR}/assets/res10_300x300_ssd_iter_140000_fp16.caffemodel")
-#set(KEYPOINT_DETECTION_MODEL "${PROJECT_SOURCE_DIR}/assets/lbfmodel.yaml")
-#
-#target_compile_definitions(${PROJECT_NAME} PRIVATE FACE_DETECTION_CONFIGURATION="${FACE_DETECTION_CONFIGURATION}")
-#target_compile_definitions(${PROJECT_NAME} PRIVATE FACE_DETECTION_WEIGHTS="${FACE_DETECTION_WEIGHTS}")
-#target_compile_definitions(${PROJECT_NAME} PRIVATE KEYPOINT_DETECTION_MODEL="${KEYPOINT_DETECTION_MODEL}")
+target_compile_definitions(${PROJECT_NAME} PRIVATE FACE_DETECTION_CONFIGURATION="${FACE_DETECTION_CONFIGURATION}")
+target_compile_definitions(${PROJECT_NAME} PRIVATE FACE_DETECTION_WEIGHTS="${FACE_DETECTION_WEIGHTS}")
+target_compile_definitions(${PROJECT_NAME} PRIVATE KEYPOINT_DETECTION_MODEL="${KEYPOINT_DETECTION_MODEL}")
