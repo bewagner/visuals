@@ -28,21 +28,6 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 
 find_package(Git REQUIRED)
 include(ExternalProject)
-
-# Cinder
-set(CINDER_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/Cinder)
-ExternalProject_Add(Cinder
-        GIT_REPOSITORY https://github.com/cinder/Cinder
-        GIT_TAG v0.9.2
-        SOURCE_DIR cinder
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND ""
-        INSTALL_COMMAND ""
-        )
-add_dependencies(${PROJECT_NAME} Cinder)
-#add_subdirectory(${CINDER_INSTALL_LOCATION})
-
-
 # OpenCV
 set(OPENCV_CONTRIB_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/opencv_contrib)
 ExternalProject_Add(opencv_contrib
@@ -59,7 +44,7 @@ ExternalProject_Add(opencv
         GIT_TAG 4.3.0
         SOURCE_DIR opencv
         BINARY_DIR opencv-build
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${OPENCV_INSTALL_LOCATION} -DBUILD_LIST="core,imgproc,highgui,dnn" -DOPENCV_EXTRA_MODULES_PATH=${CMAKE_BINARY_DIR}/opencv_contrib/modules
+        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${OPENCV_INSTALL_LOCATION} -DBUILD_LIST="core,imgproc,highgui,dnn,dnn_objdetect,dnn_superres" -DOPENCV_EXTRA_MODULES_PATH=${CMAKE_BINARY_DIR}/opencv_contrib/modules
         )
 add_dependencies(opencv opencv_contrib)
 add_dependencies(${PROJECT_NAME} opencv)
