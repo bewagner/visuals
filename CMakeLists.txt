@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.5)
 project(visuals LANGUAGES CXX)
 
 set(SOURCES
@@ -22,12 +22,6 @@ set(SOURCES
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_14)
 
-# OpenCV setup
-
-#set(BUILD_LIST "core,imgproc,highgui,dnn" CACHE STRING "Required OpenCV modules" FORCE)
-#set(BUILD_LIST "core" CACHE STRING "Required OpenCV modules" FORCE)
-#set(OPENCV_EXTRA_MODULES_PATH "${PROJECT_SOURCE_DIR}/opencv_contrib/modules" CACHE PATH "Path for opencv_contrib modules" FORCE)
-#add_subdirectory(opencv)
 
 
 find_package(Git REQUIRED)
@@ -54,7 +48,7 @@ ExternalProject_Add(opencv
         )
 add_dependencies(opencv opencv_contrib)
 target_include_directories(${PROJECT_NAME} PRIVATE ${OPENCV_INSTALL_LOCATION}/include/opencv4)
-target_link_directories(${PROJECT_NAME} PRIVATE "${OPENCV_INSTALL_LOCATION}/lib")
+link_directories("${OPENCV_INSTALL_LOCATION}/lib") # target_link_directories would be better here, but the cmake version on TravisCI does not support this yet
 target_link_libraries(${PROJECT_NAME} opencv_core)
 add_dependencies(${PROJECT_NAME} opencv)
 
