@@ -1,6 +1,6 @@
 [submodule "Cinder"]
 	path = Cinder
-	url = git@github.com:cinder/Cinder.git
+    url = https://github.com/cinder/Cinder.git 
 [submodule "opencv"]
 	path = opencv
 	url = https://github.com/opencv/opencv
