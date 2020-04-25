@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 project(visuals LANGUAGES CXX)
 
 set(SOURCES
-                src/main.cpp
+        src/main.cpp
         )
 
 # Cinder setup
@@ -21,10 +21,21 @@ set(SOURCES
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 
-
-
 find_package(Git REQUIRED)
 include(ExternalProject)
+
+# Cinder
+set(CINDER_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/Cinder)
+ExternalProject_Add(cinder
+        GIT_REPOSITORY https://github.com/cinder/Cinder
+        GIT_TAG v0.9.2
+        SOURCE_DIR cinder
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
+        )
+
+add_dependencies(${PROJECT_NAME} cinder)
 
 # OpenCV
 set(OPENCV_CONTRIB_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/opencv_contrib)
@@ -52,7 +63,7 @@ target_link_libraries(${PROJECT_NAME} opencv_core)
 add_dependencies(${PROJECT_NAME} opencv)
 
 # Set C++ standard
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_14)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_11)
 
 # Introduce preprocessor variables to keep paths of asset files
 set(FACE_DETECTION_CONFIGURATION "${PROJECT_SOURCE_DIR}/assets/deploy.prototxt")
@@ -62,3 +73,4 @@ set(KEYPOINT_DETECTION_MODEL "${PROJECT_SOURCE_DIR}/assets/lbfmodel.yaml")
 target_compile_definitions(${PROJECT_NAME} PRIVATE FACE_DETECTION_CONFIGURATION="${FACE_DETECTION_CONFIGURATION}")
 target_compile_definitions(${PROJECT_NAME} PRIVATE FACE_DETECTION_WEIGHTS="${FACE_DETECTION_WEIGHTS}")
 target_compile_definitions(${PROJECT_NAME} PRIVATE KEYPOINT_DETECTION_MODEL="${KEYPOINT_DETECTION_MODEL}")
+
