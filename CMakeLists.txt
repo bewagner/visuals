@@ -5,22 +5,20 @@ set(SOURCES
                 src/main.cpp
         )
 
-## Cinder setup
-#add_subdirectory(Cinder)
-#get_filename_component(CINDER_PATH "${PROJECT_SOURCE_DIR}/Cinder" ABSOLUTE)
-#
-#include("${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake")
-#ci_make_app(
-#        APP_NAME "${PROJECT_NAME}"
-#        CINDER_PATH ${CINDER_PATH}
-#        SOURCES ${SOURCES}
-#        INCLUDES include/
-#)
+# Cinder setup
+add_subdirectory(Cinder)
+get_filename_component(CINDER_PATH "${PROJECT_SOURCE_DIR}/Cinder" ABSOLUTE)
+
+include("${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake")
+ci_make_app(
+        APP_NAME "${PROJECT_NAME}"
+        CINDER_PATH ${CINDER_PATH}
+        SOURCES ${SOURCES}
+        INCLUDES include/
+)
 
 # Set C++ standard
-add_executable(${PROJECT_NAME} ${SOURCES})
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_14)
-target_include_directories(${PROJECT_NAME} PRIVATE include/)
 
 # OpenCV setup
 find_package(OpenCV REQUIRED)
