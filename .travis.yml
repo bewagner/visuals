@@ -4,8 +4,6 @@ language: cpp
 compiler:
     - gcc
 
-branches:
-    only: travis-test
 
 before_install:
     - sudo apt-get update
