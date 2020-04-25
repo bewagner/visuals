@@ -1,3 +1,5 @@
+os: linux
+dist: xenial
 language: cpp
 install: make get-deps
 compiler: gcc
@@ -8,3 +10,7 @@ branches:
 before_install:
     - sudo apt-get update
     
+script:
+    - mkdir build && cd build
+    - cmake ..
+    - cmake --build . 
