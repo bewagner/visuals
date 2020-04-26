@@ -9,21 +9,22 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(SOURCES
         src/main.cpp
         )
-# TODO Make cinder installable via cmake
-# Cinder setup
-add_subdirectory(Cinder)
-get_filename_component(CINDER_PATH "${PROJECT_SOURCE_DIR}/Cinder" ABSOLUTE)
 
-include("${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake")
-ci_make_app(
-        APP_NAME "${PROJECT_NAME}"
-        CINDER_PATH ${CINDER_PATH}
-        SOURCES ${SOURCES}
-        INCLUDES include/
-)
+# # TODO Make cinder installable via cmake
+# # Cinder setup
+# add_subdirectory(Cinder)
+# get_filename_component(CINDER_PATH "${PROJECT_SOURCE_DIR}/Cinder" ABSOLUTE)
+
+# include("${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake")
+# ci_make_app(
+#         APP_NAME "${PROJECT_NAME}"
+#         CINDER_PATH ${CINDER_PATH}
+#         SOURCES ${SOURCES}
+#         INCLUDES include/
+# )
 
 
-#add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(${PROJECT_NAME} ${SOURCES})
 
 
 find_package(Git REQUIRED)

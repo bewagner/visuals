@@ -2,6 +2,7 @@ os: linux
 dist: bionic
 language: cpp
 compiler:
+    - clang
     - gcc
 
 install:
@@ -13,4 +14,4 @@ install:
 script:
     - mkdir build && cd build
     - cmake ..
-    - cmake --build  . 
+    - cmake --build  . -j $(nproc)
