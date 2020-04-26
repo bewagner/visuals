@@ -1,11 +1,10 @@
 cmake_minimum_required(VERSION 3.5)
 project(visuals LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-add_compile_definitions(_GLIBCXX_USE_CXX11_ABI=1)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
 set(SOURCES
         src/main.cpp
         )
@@ -24,55 +23,11 @@ set(SOURCES
 # )
 
 
-
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-
-find_package(Git REQUIRED)
-include(ExternalProject)
-# OpenCV
-set(OPENCV_CONTRIB_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/opencv_contrib)
-ExternalProject_Add(opencv_contrib
-        GIT_REPOSITORY https://github.com/opencv/opencv_contrib
-        GIT_TAG 4.3.0
-        SOURCE_DIR opencv_contrib
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND ""
-        INSTALL_COMMAND ""
-        )
-set(OPENCV_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/opencv)
-ExternalProject_Add(opencv
-        GIT_REPOSITORY https://github.com/opencv/opencv
-        GIT_TAG 4.3.0
-        SOURCE_DIR opencv
-        BINARY_DIR opencv-build
-        CMAKE_ARGS
-        -DCMAKE_INSTALL_PREFIX=${OPENCV_INSTALL_LOCATION}
-        -DBUILD_LIST="core,imgproc,highgui,dnn,dnn_objdetect,dnn_superres"
-        -DOPENCV_EXTRA_MODULES_PATH=${CMAKE_BINARY_DIR}/opencv_contrib/modules
-        -DENABLE_FAST_MATH=ON
-        -DENABLE_LTO=ON
-        -DINSTALL_C_EXAMPLES=OFF
-        -DINSTALL_PYTHON_EXAMPLES=OFF
-        -DBUILD_TESTS=OFF
-        -DBUILD_PERF_TESTS=OFF
-        -DBUILD_EXAMPLES=OFF
-        -DBUILD_DOCS=OFF
-        -DBUILD_opencv_python2=OFF
-        -DBUILD_opencv_python_bindings_generator=OFF
-        -DBUILD_opencv_python_tests=OFF
-        -DOPENCV_ENABLE_NONFREE=ON
-        -D_GLIBCXX_USE_CXX11_ABI=1
-        )
-add_dependencies(opencv opencv_contrib)
-add_dependencies(${PROJECT_NAME} opencv)
-
-set(OpenCV_DIR ${CMAKE_BINARY_DIR}/opencv-build)
 find_package(OpenCV REQUIRED)
 target_include_directories(${PROJECT_NAME} PRIVATE ${OpenCV_DIRS})
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
-
-
 
 # Introduce preprocessor variables to keep paths of asset files
 set(FACE_DETECTION_CONFIGURATION "${PROJECT_SOURCE_DIR}/assets/deploy.prototxt")
