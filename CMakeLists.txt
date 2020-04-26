@@ -4,7 +4,7 @@ project(visuals LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
+add_compile_definitions(_GLIBCXX_USE_CXX11_ABI=1)
 
 set(SOURCES
         src/main.cpp
@@ -61,6 +61,7 @@ ExternalProject_Add(opencv
         -DBUILD_opencv_python_bindings_generator=OFF
         -DBUILD_opencv_python_tests=OFF
         -DOPENCV_ENABLE_NONFREE=ON
+        -D_GLIBCXX_USE_CXX11_ABI=1
         )
 add_dependencies(opencv opencv_contrib)
 add_dependencies(${PROJECT_NAME} opencv)
