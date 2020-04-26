@@ -20,6 +20,7 @@ set(SOURCES
 add_subdirectory(Cinder)
 get_filename_component(CINDER_PATH "${PROJECT_SOURCE_DIR}/Cinder" ABSOLUTE)
 
+
 include("${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake")
 ci_make_app(
         APP_NAME "${PROJECT_NAME}"
