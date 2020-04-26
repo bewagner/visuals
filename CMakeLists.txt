@@ -44,7 +44,22 @@ ExternalProject_Add(opencv
         GIT_TAG 4.3.0
         SOURCE_DIR opencv
         BINARY_DIR opencv-build
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${OPENCV_INSTALL_LOCATION} -DBUILD_LIST="core,imgproc,highgui,dnn,dnn_objdetect,dnn_superres" -DOPENCV_EXTRA_MODULES_PATH=${CMAKE_BINARY_DIR}/opencv_contrib/modules
+        CMAKE_ARGS
+        -DCMAKE_INSTALL_PREFIX=${OPENCV_INSTALL_LOCATION}
+        -DBUILD_LIST="core,imgproc,highgui,dnn,dnn_objdetect,dnn_superres"
+        -DOPENCV_EXTRA_MODULES_PATH=${CMAKE_BINARY_DIR}/opencv_contrib/modules
+        -DENABLE_FAST_MATH=ON
+        -DENABLE_LTO=ON
+        -DINSTALL_C_EXAMPLES=OFF
+        -DINSTALL_PYTHON_EXAMPLES=OFF
+        -DBUILD_TESTS=OFF
+        -DBUILD_PERF_TESTS=OFF
+        -DBUILD_EXAMPLES=OFF
+        -DBUILD_DOCS=OFF
+        -DBUILD_opencv_python2=OFF
+        -DBUILD_opencv_python_bindings_generator=OFF
+        -DBUILD_opencv_python_tests=OFF
+        -DOPENCV_ENABLE_NONFREE=ON
         )
 add_dependencies(opencv opencv_contrib)
 add_dependencies(${PROJECT_NAME} opencv)
