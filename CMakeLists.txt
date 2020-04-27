@@ -20,7 +20,7 @@ set(SOURCES
        # src/main.cpp
         )
 
- # TODO Make cinder installable via cmake
+ # TODO Make cinder installable via cmake 
  # Cinder setup
  add_subdirectory(Cinder)
  get_filename_component(CINDER_PATH "${PROJECT_SOURCE_DIR}/Cinder" ABSOLUTE)
