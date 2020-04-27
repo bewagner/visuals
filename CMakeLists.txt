@@ -33,9 +33,6 @@ set(SOURCES
          INCLUDES include/
 )
 
-
-add_executable(${PROJECT_NAME} ${SOURCES})
-
 find_package(OpenCV REQUIRED)
 target_include_directories(${PROJECT_NAME} PRIVATE ${OpenCV_DIRS})
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
