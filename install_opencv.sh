@@ -29,9 +29,8 @@ cmake -DCMAKE_BUILD_TYPE=Release \
       -DBUILD_opencv_python2=OFF \
       -DBUILD_opencv_python_bindings_generator=OFF \
       -DBUILD_opencv_python_tests=OFF \
-      -DOPENCV_ENABLE_NONFREE=ON \
       -DOPENCV_EXTRA_MODULES_PATH=${base_directory}/opencv_contrib/modules \
-      -DCMAKE_INSTALL_PREFIX=${base_directory}/${opencv_build_directory} ..
+      -DCMAKE_INSTALL_PREFIX=/usr/local ..
 make -j $(nproc) -l $(nproc)
 
 echo "--- Install openCV ---"
