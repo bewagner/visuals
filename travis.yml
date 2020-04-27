@@ -7,9 +7,6 @@ compiler:
     - gcc
     - clang
 
-branches:
-    only: travis-test
-
 before_install:
     - sudo apt-get update
 
