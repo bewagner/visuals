@@ -17,7 +17,7 @@ set(SOURCES
         include/detector/PairOfEyes.h
         include/ScopedBufferBase.h
         include/Ssbo.h
-       // src/main.cpp
+       # src/main.cpp
         )
 
  # TODO Make cinder installable via cmake
