@@ -4,6 +4,7 @@
   <img width="460" height="300" src="/images/particles.gif">
 </p>
 
+[![Build Status](https://travis-ci.com/bewagner/visuals.svg?branch=master)](https://travis-ci.com/bewagner/visuals)
 ## Install dependencies
 
 To build the visualization I used OpenCV 4.2.0 and Cinder 0.9.2. I added a script `setup.sh` that will install all of Cinder's dependencies and OpenCV. If you want to make sure to have all dependencies installed, run

@@ -1,8 +1,11 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.5)
 project(visuals LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 set(SOURCES
-        #         src/main.cpp
         src/NVidiaComputeParticlesApp.cpp
         src/CameraHandler.cpp
         src/ParticleSystem.cpp
@@ -14,26 +17,24 @@ set(SOURCES
         include/detector/PairOfEyes.h
         include/ScopedBufferBase.h
         include/Ssbo.h
+       # src/main.cpp
         )
 
-# Cinder setup
-add_subdirectory(Cinder)
-get_filename_component(CINDER_PATH "${PROJECT_SOURCE_DIR}/Cinder" ABSOLUTE)
+ # TODO Make cinder installable via cmake
+ # Cinder setup
+ add_subdirectory(Cinder)
+ get_filename_component(CINDER_PATH "${PROJECT_SOURCE_DIR}/Cinder" ABSOLUTE)
 
-
-include("${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake")
-ci_make_app(
-        APP_NAME "${PROJECT_NAME}"
-        CINDER_PATH ${CINDER_PATH}
-        SOURCES ${SOURCES}
-        INCLUDES include/
+ include("${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake")
+ ci_make_app(
+         APP_NAME "${PROJECT_NAME}"
+         CINDER_PATH ${CINDER_PATH}
+         SOURCES ${SOURCES}
+         INCLUDES include/
 )
 
-# Set C++ standard
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_14)
-
-# OpenCV setup
 find_package(OpenCV REQUIRED)
+target_include_directories(${PROJECT_NAME} PRIVATE ${OpenCV_DIRS})
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 
 # Introduce preprocessor variables to keep paths of asset files
@@ -44,3 +45,4 @@ set(KEYPOINT_DETECTION_MODEL "${PROJECT_SOURCE_DIR}/assets/lbfmodel.yaml")
 target_compile_definitions(${PROJECT_NAME} PRIVATE FACE_DETECTION_CONFIGURATION="${FACE_DETECTION_CONFIGURATION}")
 target_compile_definitions(${PROJECT_NAME} PRIVATE FACE_DETECTION_WEIGHTS="${FACE_DETECTION_WEIGHTS}")
 target_compile_definitions(${PROJECT_NAME} PRIVATE KEYPOINT_DETECTION_MODEL="${KEYPOINT_DETECTION_MODEL}")
+
