@@ -34,4 +34,4 @@ cmake -DCMAKE_BUILD_TYPE=Release \
 make -j $(nproc) -l $(nproc)
 
 echo "--- Install openCV ---"
-make install
+sudo make install
