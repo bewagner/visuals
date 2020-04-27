@@ -7,6 +7,9 @@ compiler:
     - gcc
     - clang
 
+branches:
+    - *
+    
 before_install:
     - sudo apt-get update
 
