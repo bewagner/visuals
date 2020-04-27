@@ -8,6 +8,7 @@ compiler:
     - clang
 
 branches:
+  only:
     - *
     
 before_install:
