@@ -17,7 +17,7 @@ cd ./opencv
 mkdir -p build 
 cd ./build 
 cmake -DCMAKE_BUILD_TYPE=Release \
-      -DBUILD_LIST="core,imgproc,highgui,dnn,dnn_objdetect,dnn_superres" \
+      -DBUILD_LIST="core,highgui,dnn,dnn_objdetect,dnn_superres" \
       -DENABLE_FAST_MATH=ON \
       -DENABLE_LTO=ON \
       -DINSTALL_C_EXAMPLES=OFF \
