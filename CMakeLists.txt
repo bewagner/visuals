@@ -6,21 +6,32 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(SOURCES
-        src/main.cpp
+        src/NVidiaComputeParticlesApp.cpp
+        src/CameraHandler.cpp
+        src/ParticleSystem.cpp
+        src/detector/Detector.cpp
+        src/detector/FaceDetector.cpp
+        src/detector/FaceKeypoints.cpp
+        src/detector/KeypointDetector.cpp
+
+        include/detector/PairOfEyes.h
+        include/ScopedBufferBase.h
+        include/Ssbo.h
+       // src/main.cpp
         )
 
-# # TODO Make cinder installable via cmake
-# # Cinder setup
-# add_subdirectory(Cinder)
-# get_filename_component(CINDER_PATH "${PROJECT_SOURCE_DIR}/Cinder" ABSOLUTE)
+ # TODO Make cinder installable via cmake
+ # Cinder setup
+ add_subdirectory(Cinder)
+ get_filename_component(CINDER_PATH "${PROJECT_SOURCE_DIR}/Cinder" ABSOLUTE)
 
-# include("${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake")
-# ci_make_app(
-#         APP_NAME "${PROJECT_NAME}"
-#         CINDER_PATH ${CINDER_PATH}
-#         SOURCES ${SOURCES}
-#         INCLUDES include/
-# )
+ include("${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake")
+ ci_make_app(
+         APP_NAME "${PROJECT_NAME}"
+         CINDER_PATH ${CINDER_PATH}
+         SOURCES ${SOURCES}
+         INCLUDES include/
+)
 
 
 add_executable(${PROJECT_NAME} ${SOURCES})
