@@ -8,8 +8,8 @@ compiler:
     - clang
 
 branches:
-  only:
-    - .*
+  except:
+    - experimental
     
 before_install:
     - sudo apt-get update
