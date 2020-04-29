@@ -1,5 +1,7 @@
 # Building an eye tracker with openCV in C++
 
+[![Build Status](https://travis-ci.com/bewagner/visuals.svg?branch=blog-post-2)](https://travis-ci.com/bewagner/visuals)
+
 Here you find the code for my [blog post](http://bewagner.github.io/programming/2020/04/12/building-an-eye-tracker-with-opencv-in-cpp/) on building an eye tracker with openCV. 
 
 ## Installing openCV
@@ -19,7 +21,7 @@ Build this directory in your favorite C++ IDE or run
 ```
 mkdir build && cd build
 cmake ..
-make
+cmake --build .
 ```
 to build the code. Let me know if you run into any problems!
 
