@@ -14,18 +14,6 @@ set(SOURCES
         include/detector/PairOfEyes.h
         )
 
-# Cinder setup
-#add_subdirectory(Cinder)
-#get_filename_component(CINDER_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Cinder" ABSOLUTE)
-#
-#include("${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake")
-#ci_make_app(
-#        APP_NAME "${PROJECT_NAME}"
-#        CINDER_PATH ${CINDER_PATH}
-#        SOURCES ${SOURCES}
-#        INCLUDES include/
-#)
-
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 # OpenCV setup
