@@ -51,8 +51,8 @@ std::vector<PairOfEyes> points_to_eye_pair(const std::vector<cv::Point2f> &point
 
     eye_pairs.reserve(points.size() / 2);
 
-    int number_of_points = static_cast<int>(points.size());
-    for (int i = 0; i < number_of_points; i += 2) {
+
+    for (size_t i = 0; i < points.size(); i += 2) {
         eye_pairs.emplace_back(points[i], points[i + 1]);
     }
     return eye_pairs;
