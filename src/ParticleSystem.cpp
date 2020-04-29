@@ -69,8 +69,8 @@ void ParticleSystem::setupBuffers() {
     // by indexing the compute shader buffer with a /4.  The value mod 4
     // is used to compute the offset from the vertex site, and each of the
     // four indices in a given quad references the same center point
-    for (size_t i = 0, j = 0; i < NUM_PARTICLES; ++i) {
-        size_t index = i << 2u;
+    for (unsigned int i = 0, j = 0; i < NUM_PARTICLES; ++i) {
+        uint32_t index = i << 2u;
         indices[j++] = index;
         indices[j++] = index + 1;
         indices[j++] = index + 2;
@@ -114,8 +114,10 @@ ci::vec3 unproject(const ci::vec3 &point, const ci::CameraPersp &camera, const c
 
     // Transform to normalized coordinates in the range [-1, 1]
     ci::vec4 pointNormal;
-    pointNormal.x = (point.x) / window_size.x * 2.0f - 1.0f;
-    pointNormal.y = (point.y) / window_size.y * 2.0f;
+    auto window_x = static_cast<float>(window_size.x);
+    auto window_y = static_cast<float>(window_size.y);
+    pointNormal.x = (point.x) / window_x * 2.0f - 1.0f;
+    pointNormal.y = (point.y) / window_y * 2.0f;
     pointNormal.z = 2.0f * point.z - 1.0f;
     pointNormal.w = 1.0f;
 
@@ -139,7 +141,9 @@ ci::vec3 unproject(const ci::vec3 &point, const ci::CameraPersp &camera, const c
 /// \return Transformed point
 ci::vec3 screenToWorld(const ci::ivec2 &point, const ci::CameraPersp &camera, const ci::ivec2 &window_size) {
     // Find near and far plane intersections
-    ci::vec3 point3f = ci::vec3((float) point.x, window_size.y * 0.5f - (float) point.y, 0.0f);
+    ci::vec3 point3f = ci::vec3(static_cast<float>(point.x),
+                                static_cast<float>(window_size.y) * 0.5f - static_cast<float>( point.y),
+                                0.0f);
     ci::vec3 nearPlane = unproject(point3f, camera, window_size);
     ci::vec3 farPlane = unproject(ci::vec3(point3f.x, point3f.y, 1.0f), camera, window_size);
 
@@ -169,7 +173,7 @@ ParticleSystem::update(const AppState &app_state) {
     }
 
     auto *pair_ubo = (ci::vec4 *) eye_positions_ubo_->mapWriteOnly();
-    for (int i = 0; i < std::min(MAX_NUMBER_OF_EYE_PAIRS, eye_positions_.size()); ++i) {
+    for (unsigned int i = 0; i < std::min(MAX_NUMBER_OF_EYE_PAIRS, eye_positions_.size()); ++i) {
         auto world_coordinate = ci::vec4(screenToWorld(eye_positions_[i], app_state.camera, app_state.window_size),
                                          0.0007f);
         *pair_ubo = world_coordinate;
@@ -217,7 +221,7 @@ void ParticleSystem::draw() const {
 }
 
 ParticleSystem::ParticleSystem() : noise_size(16),
-                                   parameters(noise_size) {
+                                   parameters(static_cast<float>(noise_size)) {
     updateNoiseTexture3D();
     setupBuffers();
     setupShaders();

@@ -24,7 +24,8 @@ cv::Point2f mean_point(const std::vector<cv::Point2f> &points) {
 
 FaceKeypoints::FaceKeypoints(std::vector<cv::Point2f> all_points) : keypoints(std::move(all_points)) {
     int number_of_points_opencv_keypoint_detector_detects = 68;
-    if (keypoints.size() != number_of_points_opencv_keypoint_detector_detects) {
+    int current_number_of_keypoints = static_cast<int>(keypoints.size());
+    if (current_number_of_keypoints != number_of_points_opencv_keypoint_detector_detects) {
         throw std::invalid_argument("Number of keypoints to construct face was not " +
                                     std::to_string(number_of_points_opencv_keypoint_detector_detects));
     }
@@ -36,7 +37,7 @@ cv::Point2f FaceKeypoints::left_eye_center() const {
 
 cv::Point2f FaceKeypoints::right_eye_center() const {
     return mean_point(right_eye());
-    }
+}
 
 cv::Point2f FaceKeypoints::mouth_center() const {
     return mean_point(mouth());

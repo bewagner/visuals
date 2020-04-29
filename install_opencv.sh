@@ -18,16 +18,12 @@ mkdir -p build
 cd ./build 
 cmake -DCMAKE_BUILD_TYPE=Release \
       -DENABLE_FAST_MATH=ON \
-      -DENABLE_LTO=ON \
       -DINSTALL_C_EXAMPLES=OFF \
       -DINSTALL_PYTHON_EXAMPLES=OFF \
       -DBUILD_TESTS=OFF \
       -DBUILD_PERF_TESTS=OFF \
       -DBUILD_EXAMPLES=OFF \
       -DBUILD_DOCS=OFF \
-      -DBUILD_opencv_python2=OFF \
-      -DBUILD_opencv_python_bindings_generator=OFF \
-      -DBUILD_opencv_python_tests=OFF \
       -DOPENCV_EXTRA_MODULES_PATH=${base_directory}/opencv_contrib/modules \
       -DCMAKE_INSTALL_PREFIX=/usr/local ..
 make -j $(nproc) -l $(nproc)

@@ -13,7 +13,7 @@ public:
 
     struct Parameters {
         explicit Parameters(float noise_size)
-                : damping(0.95),
+                : damping(0.95f),
                   noiseFreq(10.0f),
                   noiseStrength(0.001f),
                   invNoiseSize(1.0f / noise_size) {

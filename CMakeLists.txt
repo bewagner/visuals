@@ -36,6 +36,7 @@ set(SOURCES
 find_package(OpenCV REQUIRED)
 target_include_directories(${PROJECT_NAME} PRIVATE ${OpenCV_DIRS})
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Werror -Wpedantic -Wshadow -Wdouble-promotion -Wconversion -fvisibility=hidden)
 
 # Introduce preprocessor variables to keep paths of asset files
 set(FACE_DETECTION_CONFIGURATION "${PROJECT_SOURCE_DIR}/assets/deploy.prototxt")

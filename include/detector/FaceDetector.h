@@ -24,16 +24,17 @@ public:
 private:
     /// Face detection network
     cv::dnn::Net network_;
-    /// Input image width
-    const int input_image_width_;
+    /// Face detection confidence threshold
+    const float confidence_threshold_;
     /// Input image height
     const int input_image_height_;
+    /// Input image width
+    const int input_image_width_;
     /// Scale factor when creating image blob
     const double scale_factor_;
     /// Mean normalization values network was trained with
     const cv::Scalar mean_values_;
-    /// Face detection confidence threshold
-    const float confidence_threshold_;
+
 
 };
 

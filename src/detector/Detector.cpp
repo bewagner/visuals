@@ -51,7 +51,8 @@ std::vector<PairOfEyes> points_to_eye_pair(const std::vector<cv::Point2f> &point
 
     eye_pairs.reserve(points.size() / 2);
 
-    for (int i = 0; i < points.size(); i += 2) {
+    int number_of_points = static_cast<int>(points.size());
+    for (int i = 0; i < number_of_points; i += 2) {
         eye_pairs.emplace_back(points[i], points[i + 1]);
     }
     return eye_pairs;
@@ -78,7 +79,8 @@ Detector::run_tracking(const cv::Mat &current_frame_grayscale, const cv::Mat &la
     calcOpticalFlowPyrLK(last_frame_grayscale, current_frame_grayscale, old_points, new_points, status, err,
                          cv::Size(filter_size, filter_size), 2, termination_criteria);
 
-    for (int i = 0; i < std::min(old_points.size(), new_points.size()); ++i) {
+    auto number_of_points = static_cast<unsigned int>(std::min(old_points.size(), new_points.size()));
+    for (unsigned int i = 0; i < number_of_points; ++i) {
         if (status[i] != 1) {
             new_points[i] = old_points[i];
         }
