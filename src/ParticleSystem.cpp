@@ -40,8 +40,8 @@ void ParticleSystem::updateNoiseTexture3D() {
     const int height = noise_size;
     const int depth = noise_size;
 
-    std::vector<float> data(width * height * depth * 4);
-    int i = 0;
+    std::vector<float> data(static_cast<size_t>(width * height * depth * 4));
+    unsigned int i = 0;
     for (int z = 0; z < depth; ++z) {
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
@@ -54,7 +54,7 @@ void ParticleSystem::updateNoiseTexture3D() {
     }
 
     noise_texture_ = ci::gl::Texture3d::create(noise_size, noise_size, noise_size, tex3dFmt);
-    noise_texture_->update(data.data(), GL_RGBA, tex3dFmt.getDataType(), 0, noise_texture_->getWidth(),
+    noise_texture_->update(data.data(), GL_RGBA, static_cast<GLenum>(tex3dFmt.getDataType()), 0, noise_texture_->getWidth(),
                            noise_texture_->getHeight(), noise_texture_->getDepth());
 }
 
