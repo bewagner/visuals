@@ -1,8 +1,5 @@
-//
-// Created by benjamin on 26.03.20.
-//
-#ifndef VISUALS_FACEDETECTOR_H
-#define VISUALS_FACEDETECTOR_H
+#ifndef FACEDETECTOR_H
+#define FACEDETECTOR_H
 #include <opencv4/opencv2/dnn.hpp>
 
 class FaceDetector {
@@ -31,4 +28,4 @@ private:
 };
 
 
-#endif //VISUALS_FACEDETECTOR_H
+#endif //FACEDETECTOR_H
