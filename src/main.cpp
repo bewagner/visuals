@@ -15,15 +15,23 @@ int main(int argc, char **argv) {
     cv::Mat frame;
     while (true) {
         video_capture >> frame;
-        auto rectangles = face_detector.detect_face_rectangles(frame);
-        auto face_keypoints_vector = keypoint_detector.detect_keypoints(rectangles, frame);
-        for (const auto &face_keypoints :face_keypoints_vector) {
-            cv::circle(frame, face_keypoints.left_eye_center(), 8, cv::Scalar(0, 0, 255), -1);
-            cv::circle(frame, face_keypoints.right_eye_center(), 8, cv::Scalar(0, 0, 255), -1);
+        auto rectangles = face_detector
+                .detect_face_rectangles(frame);
+
+        auto keypoint_faces = keypoint_detector
+                .detect_keypoints(rectangles, frame);
+
+        const auto red = cv::Scalar(0, 0, 255);
+        for (const auto &face :keypoint_faces) {
+            for (const cv::Point2f &keypoint : face) {
+                cv::circle(frame, keypoint,
+                           8, red, -1);
+            }
         }
 
         imshow("Image", frame);
-        if (cv::waitKey(10) == 27) { // Stop showing the image when you press 'Esc'
+        const int esc_keycode = 27;
+        if (cv::waitKey(10) == esc_keycode) {
             break;
         }
     }
