@@ -3,13 +3,13 @@
 
 #include <opencv4/opencv2/face.hpp>
 
-class KeypointDetector {
+class KeyPointDetector {
 public:
-    explicit KeypointDetector();
+    explicit KeyPointDetector();
 
     std::vector<std::vector<cv::Point2f>>
-    detect_keypoints(const std::vector<cv::Rect> &face_rectangles,
-                     const cv::Mat &image) const;
+    detect_key_points(const std::vector<cv::Rect> &face_rectangles,
+                      const cv::Mat &image) const;
 
 private:
     cv::Ptr<cv::face::Facemark> facemark_;

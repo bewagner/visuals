@@ -1,6 +1,6 @@
 #include <opencv4/opencv2/opencv.hpp>
 #include "FaceDetector.h"
-#include "KeypointDetector.h"
+#include "KeyPointDetector.h"
 
 int main(int argc, char **argv) {
 
@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
     }
 
     FaceDetector face_detector;
-    KeypointDetector keypoint_detector;
+    KeyPointDetector keypoint_detector;
 
     cv::Mat frame;
     while (true) {
@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
                 .detect_face_rectangles(frame);
 
         auto keypoint_faces = keypoint_detector
-                .detect_keypoints(rectangles, frame);
+                .detect_key_points(rectangles, frame);
 
         const auto red = cv::Scalar(0, 0, 255);
         for (const auto &face :keypoint_faces) {
