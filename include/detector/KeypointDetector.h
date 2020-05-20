@@ -13,7 +13,7 @@ class KeypointDetector {
 public:
     explicit KeypointDetector();
 
-    std::vector<FaceKeypoints> detect_keypoints(const std::vector<cv::Rect> &face_rectangles, const cv::Mat &image) const;
+    std::vector<FaceKeypoints> detect_keypoints(const std::vector<cv::Rect> &current_keypoints, const cv::Mat &image) const;
 
     void draw_detected_keypoints(const std::vector<FaceKeypoints> &faces,
                                  const cv::Mat &frame) const;

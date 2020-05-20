@@ -12,6 +12,7 @@ set(SOURCES
         src/detector/Detector.cpp
         "${PROJECT_SOURCE_DIR}/assets/res10_300x300_ssd_iter_140000_fp16.caffemodel"
         include/detector/PairOfEyes.h
+        src/CameraHandler.cpp
         )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

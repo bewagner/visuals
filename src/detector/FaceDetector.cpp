@@ -41,10 +41,12 @@ std::vector<cv::Rect> FaceDetector::detect_face_rectangles(const cv::Mat &frame)
             continue;
         }
 
-        int x_left_bottom = static_cast<int>(detection_matrix.at<float>(i, 3) * frame.cols);
-        int y_left_bottom = static_cast<int>(detection_matrix.at<float>(i, 4) * frame.rows);
-        int x_right_top = static_cast<int>(detection_matrix.at<float>(i, 5) * frame.cols);
-        int y_right_top = static_cast<int>(detection_matrix.at<float>(i, 6) * frame.rows);
+        auto frame_columns = static_cast<float>(frame.cols);
+        auto frame_rows = static_cast<float>(frame.rows);
+        int x_left_bottom = static_cast<int>(detection_matrix.at<float>(i, 3) * frame_columns);
+        int y_left_bottom = static_cast<int>(detection_matrix.at<float>(i, 4) * frame_rows);
+        int x_right_top = static_cast<int>(detection_matrix.at<float>(i, 5) * frame_columns);
+        int y_right_top = static_cast<int>(detection_matrix.at<float>(i, 6) * frame_rows);
 
         faces.emplace_back(x_left_bottom, y_left_bottom, (x_right_top - x_left_bottom), (y_right_top - y_left_bottom));
     }

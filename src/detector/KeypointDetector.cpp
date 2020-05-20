@@ -21,8 +21,8 @@ KeypointDetector::detect_keypoints(const std::vector<cv::Rect> &face_rectangles,
     facemark_->fit(image, faces_as_input_array, keypoints);
 
     std::vector<FaceKeypoints> faces;
-    std::transform(keypoints.begin(), keypoints.end(), std::back_inserter(faces), [](const auto &keypoints) {
-        return FaceKeypoints(keypoints);
+    std::transform(keypoints.begin(), keypoints.end(), std::back_inserter(faces), [](const auto &current_keypoints) {
+        return FaceKeypoints(current_keypoints);
     });
 
     return faces;
