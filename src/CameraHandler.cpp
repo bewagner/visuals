@@ -1,8 +1,8 @@
 //
 // Created by benjamin on 04.04.20.
 //
-
 #include "CameraHandler.h"
+#include <chrono>
 
 CameraHandler::CameraHandler() {
 
@@ -14,22 +14,17 @@ CameraHandler::CameraHandler() {
     if (!video_capture_.isOpened()) {
         throw std::invalid_argument("Video capture could not find camera.");
     }
+
+    frame_capture_thread_ = std::thread(&CameraHandler::capture_frame_, this);
 }
 
-const cv::Mat &CameraHandler::next_frame() {
-    video_capture_ >> frame_;
+const cv::Mat &CameraHandler::frame() const {
+    std::lock_guard<std::mutex> frame_lock(frame_mutex_);
     return frame_;
 }
 
-template<typename T>
-void CameraHandler::show_openCV_window(const std::vector<T> &objects) {
-    for (const auto &object : objects) {
-        object.draw(frame_);
-    }
-    show_openCV_window();
-}
 
-void CameraHandler::show_openCV_window() {
+void CameraHandler::show_openCV_window() const {
     cv::imshow("Frame", frame_);
 
     if (cv::waitKey(1) == 27) {
@@ -39,4 +34,16 @@ void CameraHandler::show_openCV_window() {
 
 CameraHandler::~CameraHandler() {
     video_capture_.release();
+}
+
+void CameraHandler::capture_frame_() {
+    while (true) {
+        cv::Mat local_frame;
+        video_capture_ >> local_frame;
+        {
+            std::lock_guard<std::mutex> frame_lock(frame_mutex_);
+            frame_ = local_frame.clone();
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(16));
+    }
 }

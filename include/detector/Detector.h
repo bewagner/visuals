@@ -20,7 +20,7 @@ public:
 
 private:
     /// TODO
-    const int frequency_of_detection_frames_{80};
+    const int frequency_of_detection_frames_{240};
     /// TODO
     int frame_counter_{0};
     /// TODO

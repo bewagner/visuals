@@ -6,6 +6,8 @@
 #define VISUALS_CAMERAHANDLER_H
 
 #include <opencv4/opencv2/opencv.hpp>
+#include <mutex>
+#include <thread>
 
 class CameraHandler {
 public:
@@ -13,18 +15,21 @@ public:
 
     ~CameraHandler();
 
-    const cv::Mat &next_frame();
+    const cv::Mat &frame() const;
 
-    template<typename T>
-    void show_openCV_window(const std::vector<T> &objects);
 
-    void show_openCV_window();
+    void show_openCV_window() const;
 
 
 private:
     const int max_number_of_cameras_to_try_ = 10;
     cv::VideoCapture video_capture_;
     cv::Mat frame_;
+    mutable std::mutex frame_mutex_;
+
+    void capture_frame_();
+
+    std::thread frame_capture_thread_;
 };
 
 

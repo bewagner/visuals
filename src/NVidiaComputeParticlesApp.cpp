@@ -128,8 +128,8 @@ void NVidiaComputeParticlesApp::setupShaders() {
 
 void NVidiaComputeParticlesApp::update() {
 
-    // TODO Make this more beautiful
-    auto eye_pairs = detector.detect(cameraHandler.next_frame());
+    auto frame = cameraHandler.frame();
+    auto eye_pairs = detector.detect(frame);
     std::vector<ci::vec4> eye_pairs_as_cinder_vectors;
     for (const auto &eye_pair : eye_pairs) {
         auto eye_pair_as_cinder_vector = eye_pair.to_cinder_vectors();
